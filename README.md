@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/travis-ci/travis-web.svg?branch=master)](https://travis-ci.org/travis-ci/travis-web)
 # All Your Thoughts Are Belong To Us
 This is a project for the Advanced System Design Course of TAU / Winter '19-'20.
 It's a not-too-big client-server app that teaches and showcases how to use different CI/CD tools as well as good software design patterns
