@@ -6,6 +6,6 @@ install:
 script:   
         - pytest
 after_success:
-        - codecov
+        - codecov -t 136a6509-972b-417f-9b43-1220dd3761e3
 
 
