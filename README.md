@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/travis-ci/travis-web.svg?branch=master)](https://travis-ci.org/travis-ci/travis-web)
+[![Build Status](https://travis-ci.org/travis-ci/travis-web.svg?branch=master)](https://github.com/chib0/asd-winter2019)
+[![Coverage](https://codecov.io/gh/codecov/example-python/branch/master/graph/badge.svg)](https://github.com/chib0/asd-winter2019)
+
 # All Your Thoughts Are Belong To Us
 This is a project for the Advanced System Design Course of TAU / Winter '19-'20.
 It's a not-too-big client-server app that teaches and showcases how to use different CI/CD tools as well as good software design patterns
