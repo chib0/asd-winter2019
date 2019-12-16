@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/travis-ci/travis-web.svg?branch=master)](https://github.com/chib0/asd-winter2019)
-[![Coverage](https://codecov.io/gh/codecov/example-python/branch/master/graph/badge.svg)](https://github.com/chib0/asd-winter2019)
+[![Build Status](https://travis-ci.com/chib0/asd-winter2019.svg?branch=master)](https://travis-ci.com/chib0/asd-winter2019)
+[![Coverage](https://codecov.io/gh/chib0/asd-winter2019/branch/master/graph/badge.svg)](https://github.com/chib0/asd-winter2019)
 
 # All Your Thoughts Are Belong To Us
 This is a project for the Advanced System Design Course of TAU / Winter '19-'20.

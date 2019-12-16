@@ -2,7 +2,7 @@ import os
 import pathlib
 import string
 import sys
-import website
+from . import website
 
 # general note: I'm writing this pretty late, way after the submissions deadline.
 # I would ahve created a class to hold all the handler methods and would have implemented it using the cli class.

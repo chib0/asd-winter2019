@@ -1,10 +1,16 @@
+#flake8
 import os
 import sys
 import traceback
-
+import pathlib
 import click
+import datetime
 
-import foobar
+from unittest.mock import Mock
+
+from . import upload_thought
+from . import run_server
+from . import run_webserver
 
 
 class Log:
@@ -25,7 +31,6 @@ log = Log()
 
 
 @click.group()
-@click.version_option(foobar.version)
 @click.option('-q', '--quiet', is_flag=True)
 @click.option('-t', '--traceback', is_flag=True)
 def main(quiet=False, traceback=False):
@@ -35,64 +40,60 @@ def main(quiet=False, traceback=False):
 
 @main.group()
 @click.pass_context
-def foo(context):
-    context.obj['foo'] = foobar.Foo()
+def thought(context):
+    pass
 
+def validate_ip(addr):
+    values = [int(i) for i in addr.split('.')]
+    if len(values) != 4 or any(filter(lambda x: x < 0 or x > 255, values)):
+        raise ValueError("address does not represent an IP")
+    return addr
 
-@foo.command('run')
+@thought.command('server')
+@click.argument("port", type=int) # , help="Port to listen on"
+@click.argument("dir", type=pathlib.Path) # , help='directory to store the thoughts in'
+@click.argument("--bind", type=validate_ip, default='0.0.0.0') # , help="IPs to accept from"
 @click.pass_obj
-def foo_run(obj):
-    foo = obj['foo']
-    log(foo.run())
+def thought_server_start(obj, port, dir, bind):
+    """starts a thought server bound to the given address and ports, storing in the given directory"""
+    run_server((bind, port), dir)
 
-
-@foo.command('inc')
-@click.argument('x', type=int)
+@thought.command('upload')
+@click.argument("address", type=lambda x: x.split(":")) # , help="An IP:PORT to a server"
+@click.argument("user_id", type=int) # , help="the user uploading the thought"
+@click.argument("text", type=str)
+@click.argument("pic", type=pathlib.Path)  # not using click.Path on purpose
+@click.argument("--timestamp", type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'),
+                default=None) # , help="specifies when the thought thought"
 @click.pass_obj
-def foo_inc(obj, x):
-    foo = obj['foo']
-    log(foo.inc(x))
-
-
-@foo.command('add')
-@click.argument('x', type=int)
-@click.argument('y', type=int)
-@click.pass_obj
-def foo_add(obj, x, y):
-    foo = obj['foo']
-    log(foo.add(x, y))
+def thought_upload(obj, address, user_id, text, pic, timestamp):
+    """
+    uploads a thought with the specified contents and timestamp on behalf of the user
+    address should be formatted as IP:PORT
+    """
+    # TODO: add the pic to the upload_thought code
+    upload_thought(address, user_id, text, timestamp=timestamp)
 
 
 @main.group()
 @click.pass_context
-def bar(context):
-    context.obj['bar'] = foobar.Bar()
+def webserver(context):
+    pass
 
 
-@bar.command('run')
-@click.option('-o', '--output')
-@click.option('-u', '--uppercase', is_flag=True)
+@webserver.command('start')
+@click.argument("PORT", type=int) # help='port to server on
+@click.argument("db", type=str) # , help="directory containing all them thoughts to serve"
 @click.pass_obj
-def bar_run(obj, output=None, uppercase=False):
-    bar = obj['bar']
-    result = bar.run()
-    if uppercase:
-        result = result.upper()
-    if output:
-        with open(output, 'w') as writer:
-            writer.write(result)
-    else:
-        log(result)
-
-
-@bar.command('error')
-def bar_error():
-    raise RuntimeError('something went terribly wrong :[')
-
+def webserver_start(obj, port, db):
+    """
+    starts serving the existing thoughts in the db (filesystem path) on the specified port
+    """
+    pass  # TODO
 
 if __name__ == '__main__':
     try:
-        main(prog_name='foobar', obj={})
+        main(prog_name='aytabu', obj={})
     except Exception as error:
         log(f'ERROR: {error}')
         sys.exit(1)

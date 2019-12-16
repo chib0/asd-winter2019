@@ -1,4 +1,3 @@
-import contextlib
 from socket import socket
 
 class BrokenConnectionError(Exception):
@@ -11,6 +10,7 @@ class Connection:
     # constructor directly and be able to enjoy context management.
     @classmethod
     def connect(cls, addr, port):
+        """opens a connection to the target and and returns it"""
         s = socket() # the object itself handles closing the socket.
         s.connect((addr, port))
         return cls(s)
@@ -37,8 +37,8 @@ class Connection:
         return b''.join(parts)
 
     def close(self):
+        """ closes underlying socket """
         self._sock.close()
-
 
     def __enter__(self):
         return self
