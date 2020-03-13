@@ -1,18 +1,23 @@
 import struct
 import datetime
-
-
+from PIL import Image
+from . import net_messages_pb2
 
 class Thought:
+    """
+    encapsu
+    """
     TimeReprFormat = "%Y,%m,%d,%H,%M,%S"
     TimeStrFormat = "%Y-%m-%d %H:%M:%S"
     MetadataPacker = struct.Struct("<QQI")
 
-    __slots__ = ('_uid', '_timestamp', '_thought')
-    def __init__(self, user_id, timestamp, thought):
+    def __init__(self, user_id, timestamp, translation=(0,0,0), emotion=None, color_image=None, depth_image=None):
         self._uid = user_id
         self._timestamp = timestamp
-        self._thought = thought
+        self.translation = translation,
+        self.emotion = emotion
+        self.color_image = Image.Image() if not color_image else color_image
+        self.depth_image = Image.Image() if not depth_image else color_image
 
     @property
     def user_id(self):
@@ -21,10 +26,6 @@ class Thought:
     @property
     def timestamp(self):
         return self._timestamp  # I should have copied this but I chose not to.
-
-    @property
-    def thought(self):
-        return self._thought
 
     def _format_timestamp(self, fmt):
         return f"{self._timestamp:{fmt}}"
@@ -40,18 +41,11 @@ class Thought:
             return False
         return all(self.__getattribute__(x) == other.__getattribute__(x) for x in self.__slots__)
 
-    def serialize(self):
-        return self.MetadataPacker.pack(self._uid, int(self._timestamp.timestamp()), len(self._thought)) + \
-                    bytearray(self._thought, "utf-8")
+    def to_snapshot(self, fields=None):
+        """
+        creates a UserSnapshot from the thought
+        :param fields: the fields to include in the snapshot. default: all fields are included
+        :return: a UserMessage as defined in net_messages.proto
+        """
 
-    @classmethod
-    def deserialize(cls, thought_bytes):  # though thought_bites is both a better pun and a better name
-        header, payload = thought_bytes[:cls.MetadataPacker.size], thought_bytes[cls.MetadataPacker.size:]
-        uid, timestamp, data_len = cls.MetadataPacker.unpack(header)
-        return cls(uid,
-                   datetime.datetime.fromtimestamp(timestamp),
-                   payload[:data_len].decode("utf-8"))
-
-
-
-
+        return net_messages_pb2.UserSnapshot()

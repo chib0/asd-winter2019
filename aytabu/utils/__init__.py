@@ -1,2 +1,2 @@
-from .connection import Connection, BrokenConnectionError
+from .connection import ProtobufConnection, Connection, BrokenConnectionError
 from .listener import Listener

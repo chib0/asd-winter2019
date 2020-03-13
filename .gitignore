@@ -131,3 +131,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# the huge sample that shouldn't be on git.
+sample.mind.gz

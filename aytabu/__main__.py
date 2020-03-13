@@ -93,7 +93,7 @@ def webserver_start(obj, port, db):
 
 if __name__ == '__main__':
     try:
-        main(prog_name='aytabu', obj={})
+        main(prog_name='cortex', obj={})
     except Exception as error:
         log(f'ERROR: {error}')
         sys.exit(1)

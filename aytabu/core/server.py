@@ -3,7 +3,7 @@ import pathlib
 import socket
 import datetime
 import threading
-from aytabu.utils import Listener
+from cortex.utils import Listener
 from .thought import Thought
 
 
