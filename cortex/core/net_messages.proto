@@ -1,0 +1,83 @@
+// See README.txt for information and build instructions.
+//
+// Note: START and END tags are used in comments to define sections used in
+// tutorials.  They are not part of the syntax for Protocol Buffers.
+//
+// To get an in-depth walkthrough of this file and the related examples, see:
+// https://developers.google.com/protocol-buffers/docs/tutorials
+
+// [START declaration]
+syntax = "proto2"; // using v2 because it allows optional and required, and I need those to follow specs.
+package aytabu.core;
+
+//import "google/protobuf/timestamp.proto";
+
+// [END declaration]
+
+// [START messages]
+
+message ClientInfo {
+  required int64 id = 1;
+  required string name = 2;
+  required uint32 birth_date_seconds = 3; // :S I'd use a protobuf timestamp lol
+
+  enum ClientSex {
+    UNKNOWN=0;
+    MALE=109;  // 'm'
+    FEMALE=102; // 'f'
+    OTHER=111; // 'o'
+  }
+  required ClientSex sex = 4;
+}
+
+
+message ServerConfig {
+  required uint32 num_fields = 1;
+  repeated string fields = 2;
+}
+
+message UserSnapshot {
+  message Translation {
+    required float x = 1;
+    required float y = 2;
+    required float z = 3;
+  }
+
+  message Rotation {
+    required float x = 1;
+    required float y = 2;
+    required float z = 3;
+    required float w = 4;
+  }
+
+  message Image {
+    required uint32 height = 1;
+    required uint32 width = 2;
+    optional bytes data = 3;
+  }
+
+  message Pose {
+    required Translation translation = 1;
+    required Rotation rotation = 2;
+  }
+
+  message Feelings {
+    required float hunger = 1;
+    required float thirst = 2;
+    required float exhaustion = 3;
+    required float happiness = 4;
+  }
+
+  required uint64 timestamp = 1;
+  required Pose pose = 2;
+  required Image color = 3;
+  required Image depth = 4;
+  required Feelings feelings = 5;
+}
+
+//
+//// Our address book file is just one of these.
+//message AddressBook {
+//  repeated Person people = 1;
+//}
+//// [END messages]
