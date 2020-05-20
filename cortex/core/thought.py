@@ -17,6 +17,10 @@ class Thought:
     TimeReprFormat = "%Y,%m,%d,%H,%M,%S"
     TimeStrFormat = "%Y-%m-%d %H:%M:%S"
 
+    @classmethod
+    def from_snapshot(cls, user, snapshot):
+        return cls(user, snapshot)
+
     def __init__(self, metadata, snapshot):
         """
         Constructs a Thought descriptor, which is a snapshot taken by a user
@@ -31,7 +35,7 @@ class Thought:
 
     @property
     def user_id(self):
-        return self.snapshot.user_id
+        return self.metadata.user_id
 
     @property
     def username(self):

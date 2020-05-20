@@ -1,13 +1,5 @@
-from cortex import utils
-from . import *
-
-module_logger = utils.logging.get_module_logger(__name__)
-
-
-
-def get_dispatcher(url, topics, *args, **kwargs):
-    with utils.logging.log_exception(module_logger,
-                                     format="URL Scheme does not match rabbitmq://host:port"):
-
+from cortex.utils.dispatchers.repository import get_dispatcher
+from cortex.utils.dispatchers.topic_consumer import get_topic_consumer
+from cortex.utils.dispatchers.topic_dispatcher import get_topic_dispatcher
 
 

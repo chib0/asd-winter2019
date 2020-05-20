@@ -4,8 +4,8 @@ import struct
 class BrokenConnectionError(Exception):
     pass
 
+
 class Connection:
-    
     # I decided to implement the object itself as a context manager instead of using @contextlib.contextmanager.
     # This decision comes from the idea that the functoinality is the same but this way, a user may still call the 
     # constructor directly and be able to enjoy context management.
@@ -80,6 +80,6 @@ class ProtobufConnection(Connection):
         :param message_type: the protobuf message to construct from the received data
         :return: a constructed protobuf message
         """
-        mlength = super().receive(self.MessageHeaderFormat.size)
+        mlength = self.MessageHeaderFormat.unpack(super().receive(self.MessageHeaderFormat.size))
         return message_type.FromString(super().receive(mlength))
 

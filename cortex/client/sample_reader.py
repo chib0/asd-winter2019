@@ -1,9 +1,3 @@
-import gzip
-import struct
-from contextlib import contextmanager
-
-# from cortex.utils.struct_stream import StructStream
-from ..core import thought
 """
 The thing we are trying to achieve here is the following:
 1. We get a means of reading the Sample file 
@@ -33,13 +27,20 @@ class SampleReader:
         self._parser = parser
 
     def __iter__(self):
-        return iter(self._parser)
+        return self
+
+    def __next__(self):
+        return self.next()
 
     def next(self):
         next_thought = self._parser.next(self._stream)
-        while next_thought:
-            yield next_thought
-        raise StopIteration
+        if not next_thought:
+            raise StopIteration
+        return next_thought
+
+    @property
+    def user(self):
+        return self._parser.user
 
     def __repr__(self):
         return f"{self.__class__.__name__} over {self._stream!r} with formatter {self._parser!r}"

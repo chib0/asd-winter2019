@@ -1,53 +1,66 @@
-from socket import socket
-import datetime
-from cortex.core.thought import Thought
-from cortex.utils import ProtobufConnection
-from cortex.core import net_messages_pb2
+import urlpath
+
+from . import sample_reader, protobuf_parser
+from cortex.core import cortex_pb2
+from cortex.utils import configuration
 
 
-class ClientServerSession(ProtobufConnection):
-    """
-    This implements a session between a client and a server, from the client side.
-    """
-    def __init__(self, socket, /, server_config=None):
+class ClientHTTPSession:
+    SCHEME = 'http'
+    @classmethod
+    def start(cls, host, port):
+        url = urlpath.URL().with_scheme(cls.SCHEME).with_hostinfo(host, port)
+        out = cls(url)
+        out.get_config()
+        return out
+
+    def __init__(self, url, server_config=None):
+        self._server_config = server_config
+        self.url = urlpath.URL(url)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def get_config(self):
+        config_url = self.url / configuration.get_config()[configuration.CONFIG_SERVER_CONFIG_ENDPOINT]
+        resp = config_url.get()
+        if not resp.ok or resp.status_code != 200:
+            raise Exception(f"Couldn't get server config: {resp.status_code}, {resp.text}")
+        self._server_config = resp.json()
+
+    def serialize_thought(self, thought, serializer):
         """
-        initialize the session
-        :param socket: a connected socket
-        :param server_config: for testing / server configuration
+        a hook that serializes the thought, doing taking action according to the configuration.
+        :param thought:
+        :param serializer:
+        :return:
         """
-        super().__init__(socket)
-        self.config = server_config
+        #TODO: add configuration filtering
+        return thought.serialize(serializer)
 
-    def perform_handshake(self, user_info):
-        """
-        completes the handshake with the server, attaining configuration from the server.
-        fails on connection failures.
-        :param user_info: the information regarding a user. may be auth data in the end lol
-        """
-        ci_message = net_messages_pb2.ClientInfo(id=user_info.id,
-                                                 name=user_info.name,
-                                                 birth_date_seconds=user_info.date_of_birth)
-        self.send(ci_message)
-        self.config = self.receive(net_messages_pb2.ServerConfig)
+    def send_thought(self, thought, serializer):
+        thought_url = self.url / 'user' / str(thought.user_id)
+        data =self.serialize_thought(thought, serializer)
+        headers = {'Content-Type': 'application/octet-stream'} if not isinstance(data, bytes) else {}
+        resp = thought_url.post(data=data, headers=headers)
+        return resp.ok
 
+ClientSession = ClientHTTPSession
 
-    def send_thought(self, thought):
-        """
-        sends the given thought in a manner that the server asked for
-        :param thought: a thought. has to support to_snapshot
-        """
-        self.send_message(thought.to_snapshot())
+def _upload_sample(thought_collection, session):
+    for thought in thought_collection:
+            session.send_thought(thought, cortex_pb2.Snapshot.SerializeToString)
+
+def upload_sample(host, port, sample_path):
+    with sample_reader.SampleReader(sample_path, protobuf_parser.ProtobufSampleParser()) as reader, \
+                     ClientSession.start(host, port) as session:
+        _upload_sample(reader, session)
 
 
 
-def upload_thought(address, user_info, thought):
-    """
-     uploads a fully constructed thought to the server
-    """
-    address, port = address[0], int(address[1])
-    with ClientServerSession.connect(address, port) as session:
-        session.perform_handshake(user_info)
-        session.send_thought(thought)
 
 
 

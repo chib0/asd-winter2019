@@ -2,13 +2,13 @@ import pathlib
 from contextlib import suppress
 from datetime import datetime
 
-from utils import configuration
+from cortex.utils import configuration
 
 
 class MessageRecord:
     @classmethod
     def create(cls):
-        path = pathlib.Path(configuration.get_config()[configuration.RAW_MESSAGE_REPO]) / f'snapshot_{datetime.now()}'
+        path = pathlib.Path(configuration.get_config()[configuration.CONFIG_RAW_MESSAGE_REPO]) / f'snapshot_{datetime.now()}'
         return cls(open(path, 'wb'))
 
     @classmethod

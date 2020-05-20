@@ -1,17 +1,28 @@
 import pika
-from urllib.parse import urlparse
 from threading import Thread
-from  cortex import utils
 
+import urlpath
 
-module_logger = utils.logging.get_module_logger(__name__)
+from cortex import utils
+
+SCHEME = "rabbitmq"
+
+module_logger = utils.logging.get_module_logger(__file__)
 
 def get_dispatcher(url, topics, **kwargs):
-    url = urlparse(url)
-    host, port = utils.netloc_to_host_port(url.netloc)
+    """
+    creates a dispatcher and connects to the given url
+    :param url: where to connect
+    :param topics: topics that could be published
+    :param kwargs: anything to pass on to the dispatcher implementation (TODO)
+    :return: a dispatcher if the url scheme matches, None otherwise
+    """
+    url = urlpath.URL(url)
+    if not url.scheme == SCHEME:
+        return None
 
     topics = topics if not isinstance(topics, str) else (topics, )
-    dispatcher = RabbitQueueDispatcher(pika.ConnectionParameters(host=host, port=port), topics)
+    dispatcher = RabbitQueueDispatcher(pika.ConnectionParameters(host=url.hostname, port=url.port), topics)
     dispatcher.start()
     return dispatcher
 
@@ -31,6 +42,9 @@ class RabbitQueueDispatcher:
             self._logger.debug("creating new channel to dispatch with")
             self._queue.append((topic, data))
             self._connection.channel(on_open_callback=self._flush_messages)
+
+    def publish(self, topic, data):
+        return self.dispatch(topic, data)
 
     def _send_with_existing_channel(self, topic, data):
         if not self._channel:
@@ -96,8 +110,9 @@ class RabbitQueueDispatcher:
         Creates a connection and starts its ioloop in a different thread
         :return:
         """
-        self._ioloop = Thread(target=self._create_and_start_conn)
+        self._ioloop = Thread(target=self._create_and_start_conn, daemon=True)
         self._ioloop.start()
+
 
     def stop(self):
         """
@@ -105,6 +120,10 @@ class RabbitQueueDispatcher:
         """
         self._connection.close()
         self._ioloop.join()
+
+    @property
+    def running(self):
+        return self._ioloop.is_alive()
 
 
 

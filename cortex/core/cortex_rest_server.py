@@ -2,7 +2,7 @@ from flask import Flask, request
 
 from cortex import utils
 from cortex.utils import configuration
-from utils.filesystem import MessageRecord
+from cortex.utils.filesystem import MessageRecord
 
 
 def get_logger():
@@ -28,6 +28,7 @@ def get_server(publisher, server_name="cortex_api", *flask_args, **flask_kwargs)
     :param flask_kwargs: kwargs to pass to the Flask constructor
     :return: the server to be 'run'
     """
+
     ThoughtAPI = Flask(server_name, *flask_args, **flask_kwargs)
     publish_func = publisher if callable(publisher) else publisher.publish
     @ThoughtAPI.route("/user/<id>", methods=["POST"])
@@ -42,7 +43,7 @@ def get_server(publisher, server_name="cortex_api", *flask_args, **flask_kwargs)
             message = dict(user=id, snapshot=mr.uri)
 
         publish_func(configuration.topics.snapshot, message)
-        return ''
+        return 'OK'
 
     @ThoughtAPI.route("/configuration")
     def get_configuration():

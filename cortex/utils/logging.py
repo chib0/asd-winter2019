@@ -2,6 +2,7 @@ import contextlib
 import itertools
 import logging
 import sys
+from pathlib import Path
 
 from cortex.utils import configuration
 
@@ -32,8 +33,15 @@ def get_logger(name, custom_handlers=()):
 
     return logger
 
-def get_instance_logger(instance):
-    return get_logger(instance.__class__.__name__)
+
+def get_instance_logger(instance, custom_handlers=()):
+    return get_logger(instance.__class__.__name__, custom_handlers)
+
+
+def get_module_logger(name_or_module, custom_handlers=()):
+    path = Path(name_or_module if isinstance(name_or_module, (str, Path)) else name_or_module.__path__)
+    actual_name = path.name if path.exists() else str(name_or_module)
+    return get_logger(actual_name, custom_handlers)
 
 class log_exception(contextlib.suppress):
     def __init__(self, logger, to_suppress=(), to_ignore=(), format=None):
@@ -47,7 +55,7 @@ class log_exception(contextlib.suppress):
         super().__init__(to_suppress)
         self._try_suppress = not to_suppress == ()
         self._logger = logger
-        self._ignore = to_ignore
+        self._ignore = tuple(to_ignore)
         self._formatter = format
 
     def get_message(self, e):
@@ -58,11 +66,8 @@ class log_exception(contextlib.suppress):
         return self._formatter
 
     def __exit__(self, exctype, excinst, exctb):
-        if exctype is not None and not issubclass(exctype, self._ignore):  # shamelessly stolen from supress's __exit__
+        if not (exctype is None or issubclass(exctype, self._ignore)):  # shamelessly stolen from supress's __exit__
             self._logger.exception(self.get_message(excinst))
 
         return self._try_suppress and super().__exit__(exctype, excinst, exctb)
 
-
-def get_module_logger(name):
-    return get_logger(name)

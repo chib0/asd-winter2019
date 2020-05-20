@@ -12,5 +12,3 @@ class ThoughtServer:
         self.listener = listener
         self.publisher = publisher
 
-    def start(self):
-        self.listener.

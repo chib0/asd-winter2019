@@ -9,7 +9,9 @@ def call_once(f):
     """
     @wraps(f)
     def decorator(*args, **kwargs):
-        return f(*args, **kwargs) if decorator.should_call else None
+        if decorator.should_call:
+            decorator.should_call = False
+            return f(*args, **kwargs)
 
     decorator.should_call = True
     return decorator
