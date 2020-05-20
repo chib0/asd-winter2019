@@ -1,9 +1,9 @@
 """
 this file implements functionality that takes data from one queue, yields it to someone, than sends it on another queue.
 """
-from utils.dispatchers.topic_consumer import get_topic_consumer
-from utils.dispatchers.topic_dispatcher import get_topic_dispatcher
-from utils.logging import get_logger
+from cortex.utils.dispatchers.topic_consumer import get_topic_consumer
+from cortex.utils.dispatchers.topic_dispatcher import get_topic_dispatcher
+from cortex.utils.logging import get_logger
 
 def get_topic_tee(topic, consumer_uri, publisher_uri):
     """
@@ -98,10 +98,13 @@ class Tee:
         if not self.callback:
             raise ValueError("Can't start unbound tee")
         self._logger.info("starting...")
+        component = "publisher"
         try:
             self.publisher.start()
+            component = "consumer"
             self.consumer.start()
             self.running = True
         except Exception as x:
-            self._logger.exception(f"Failed to start {x}")
+            self._logger.exception(f"Failed to start {component}: {x}")
             self.stop()
+

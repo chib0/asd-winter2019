@@ -1,4 +1,5 @@
 import json
+
 import pytest
 import pika
 from unittest.mock import MagicMock
@@ -8,7 +9,8 @@ from cortex.utils.dispatchers import rabbit_consumer
 
 @pytest.fixture()
 def rabbit_consumer_patched(monkeypatch):
-    pik, threading, thread = MagicMock(), MagicMock(spec=rabbit_consumer.threading), MagicMock(spec=rabbit_consumer.threading.Thread)
+    pik, threading, thread = MagicMock(), MagicMock(spec=rabbit_consumer.threading), \
+                             MagicMock(spec=rabbit_consumer.threading.Thread)
     monkeypatch.setattr(rabbit_consumer.pika, "BlockingConnection", pik)
     monkeypatch.setattr(rabbit_consumer, "threading", threading)
     threading.Thread.return_value = thread
@@ -69,8 +71,6 @@ def test_consumer_register_handlers_works_for_callback(rabbit_consumer_patched):
     assert isinstance(rec.thread, MagicMock)
 
 
-
-
 def test_consumer_register_handlers_works_for_callback_only_list(rabbit_consumer_patched):
     cb = lambda x: None
     c = rabbit_consumer_patched.RabbitQueueConsumer(None, None)
@@ -118,9 +118,52 @@ def test_consumer_register_handler_with_auto_start_starts_thread(rabbit_consumer
     rec = c.handlers['topic']
     rec.thread.start.assert_called_once()
 
-## TODO:
-def test_consumer_decoder_handles_message(rabbit_consumer_patched):
-    pass
+@pytest.fixture()
+def mock_handler():
+    return MagicMock()
 
-def test_consumer_handler_gets_decoded_message(rabbit_consumer_patched):
-    pass
+@pytest.fixture()
+def mock_decoder():
+    return MagicMock()
+
+@pytest.fixture()
+def test_topic():
+    return 'test-topic'
+
+@pytest.fixture()
+def consumer_with_mocked_handler_decoder(rabbit_consumer_patched, test_topic, mock_handler, mock_decoder):
+    cons = rabbit_consumer_patched.RabbitQueueConsumer(None)
+    mock_handler.__name__ = " handler_name "
+    cons.register_handler('test-topic', mock_handler, message_decoder=mock_decoder)
+    return cons
+
+## TODO:
+def test_consumer_on_message_calls_decoder_on_message(consumer_with_mocked_handler_decoder,
+                                                      test_topic, mock_handler, mock_decoder ):
+    test_data = 'abcdefghijklmnop'
+    # The reason I am passing mock_handler/_decoder here is because it is bound to on_message when we register_handler,
+    # and the new bound function is passed to the waiting thread.
+    consumer_with_mocked_handler_decoder.on_message(test_topic, None, None, test_data,
+                                                    message_decoder=mock_decoder, cb=mock_handler)
+    mock_decoder.assert_called_once_with(test_data)
+
+def test_consumer_on_message_calls_handler_with_gets_decoded_message(consumer_with_mocked_handler_decoder,
+                                                      test_topic, mock_handler, mock_decoder ):
+    test_data = 'abcdefghijklmnop'
+    # The reason I am passing mock_handler/_decoder here is because it is bound to on_message when we register_handler,
+    # and the new bound function is passed to the waiting thread.
+    consumer_with_mocked_handler_decoder.on_message(test_topic, None, None, test_data,
+                                                    message_decoder=mock_decoder,
+                                                    cb=mock_handler)
+    mock_handler.assert_called_once_with(mock_decoder.return_value)
+
+def test_consumer_on_message_raises_runtime_error_on_none_callback(consumer_with_mocked_handler_decoder):
+    with pytest.raises((RuntimeError, AttributeError)):
+        consumer_with_mocked_handler_decoder.on_message('test', None, None, 'valid-body', MagicMock())
+
+def test_consumer_on_message_raises_runtime_error_on_none_decoder(consumer_with_mocked_handler_decoder, mock_handler):
+    with pytest.raises(RuntimeError):
+        consumer_with_mocked_handler_decoder.on_message('test', None, None, 'valid-body', cb=mock_handler)
+
+
+#TODO: test start, stop, _run_consumer

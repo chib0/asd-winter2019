@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from cortex.core import cortex_rest_server
-from utils import configuration
+from cortex.utils import configuration
 
 
 @pytest.fixture

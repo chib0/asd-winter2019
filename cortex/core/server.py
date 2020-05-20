@@ -13,7 +13,7 @@ import click
 import threading
 
 from cortex import utils
-from utils import logging
+from cortex.utils import logging
 from cortex.core import cortex_rest_server
 
 module_logger = logging.get_module_logger(__file__)

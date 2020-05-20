@@ -1,3 +1,5 @@
+import functools
+
 import pika
 from threading import Thread
 
@@ -37,14 +39,20 @@ class RabbitQueueDispatcher:
         self._ioloop = None
         self._queue = []
 
-    def dispatch(self, topic, data):
+    def dispatch(self, topic, data, again=False):
         if not self._send_with_existing_channel(topic, data):
             self._logger.debug("creating new channel to dispatch with")
-            self._queue.append((topic, data))
-            self._connection.channel(on_open_callback=self._flush_messages)
+            self._queue.insert(0 if again else len(self._queue), (topic, data))
+            self._connection.channel(on_open_callback=self._on_channel_opened)
 
-    def publish(self, topic, data):
-        return self.dispatch(topic, data)
+    def publish(self, *args, **kwargs):
+        """
+        this is a pure forward to `self.dispatch`
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        return self.dispatch(*args, **kwargs)
 
     def _send_with_existing_channel(self, topic, data):
         if not self._channel:
@@ -56,18 +64,24 @@ class RabbitQueueDispatcher:
 
         return False
 
+    def _on_channel_opened(self, channel):
+        self._channel = channel
+        self._flush_messages()
+
     def _flush_messages(self):
         """
         flushes all the messages that were to be dispatched by the queue.
         :return:
         """
-        def has_flush_channel(channel):
-            self._channel = channel
-            while self._queue:
-                topic, data = self._queue.pop(0)
-                channel.basic_publish('', topic, data)
+        while self._queue:
+            topic, data = self._queue.pop(0)
+            try:
+                self._channel.basic_publish('', topic, data)
+            except Exception:
+                # there is an issue with this channel, we're trying to reconnect.
+                self.dispatch(topic, data, again=True)
+                break
 
-        self._connection.channel(on_open_callback=has_flush_channel)
 
     def _declare_topics(self, connection):
         """

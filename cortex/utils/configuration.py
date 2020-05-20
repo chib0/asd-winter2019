@@ -12,7 +12,7 @@ RAW_MESSAGE_REPO = '/tmp/raw_message_repo'
 @cache_res
 def get_config():
     return {
-        CONFIG_DEBUG_LEVEL: logging.DEBUG,
+        CONFIG_DEBUG_LEVEL: logging.ERROR,
         CONFIG_CLIENT_CONFIG: {},
         CONFIG_SERVER_THREAD_NAME: "cortex_backend_server",
         CONFIG_SERVER_CONFIG_ENDPOINT: '/configuration',

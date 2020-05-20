@@ -1,3 +1,4 @@
+pika
 attrs==19.3.0
 bleach==2.1
 certifi==2019.11.28
