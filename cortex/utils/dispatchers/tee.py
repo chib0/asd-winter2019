@@ -5,18 +5,20 @@ from cortex.utils.dispatchers.topic_consumer import get_topic_consumer
 from cortex.utils.dispatchers.topic_dispatcher import get_topic_dispatcher
 from cortex.utils.logging import get_logger
 
-def get_topic_tee(topic, consumer_uri, publisher_uri):
+
+def get_topic_tee(in_topic, out_topic, consumer_uri, publisher_uri):
     """
     returns a tee over the topic. consumer and publisher are unbounded and not started
-    :param topic: topic to tee on
+    :param out_topic: topic published by the dispatcher
+    :param in_topic: topic that comes in through the consumer
     :param consumer_uri: uri to the consumer
     :param publisher_uri: uri to the publisher
     :return: a Tee
     """
-    cons = get_topic_consumer(topic, consumer_uri)
+    cons = get_topic_consumer(in_topic, consumer_uri)
     if not cons:
         raise ValueError(f"Could not find consumer impl for {consumer_uri}")
-    pub = get_topic_dispatcher(None, publisher_uri)
+    pub = get_topic_dispatcher(out_topic, publisher_uri)
     if not pub:
         raise ValueError(f"Could not find consumer impl for {publisher_uri}")
 
@@ -46,7 +48,7 @@ class Tee:
         :return: f
         """
         if f is None:
-            return lambda f: self(f, message_decoder=message_decoder, message_encoder=message_encoder)
+            return lambda fn: self(fn, message_decoder=message_decoder, message_encoder=message_encoder)
         self._logger.debug(f"Tee over {self.publisher.topic} decorating {f.__name__}")
         self.bind(f, message_decoder=message_decoder, message_encoder=message_encoder)
         return f
@@ -73,7 +75,7 @@ class Tee:
         publish_func = f
         if self.publisher:
             publisher_kwargs = {} if not message_encoder else {"message_encoder": message_encoder}
-            publish_func = self.publisher.results_publisher(self._callback, **publisher_kwargs)
+            publish_func = self.publisher.result_publisher(self._callback, **publisher_kwargs)
         self.consumer.bind(publish_func, message_decoder=message_decoder)
 
     def stop(self):
@@ -101,10 +103,11 @@ class Tee:
         component = "publisher"
         try:
             self.publisher.start()
+            self._logger.info("started publisher...")
             component = "consumer"
             self.consumer.start()
+            self._logger.info("started consumer...")
             self.running = True
         except Exception as x:
             self._logger.exception(f"Failed to start {component}: {x}")
             self.stop()
-

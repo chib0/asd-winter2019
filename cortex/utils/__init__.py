@@ -1,11 +1,14 @@
+import base64
+import gzip
 import pathlib
 import contextlib
 import sys
 # from .connection import ProtobufConnection, Connection, BrokenConnectionError
 # from .listener import Listener
 # from . import configuration
-# from . import decorators
-# from . import dispatchers
+from . import decorators
+import urlpath
+
 from . import logging
 
 
@@ -54,3 +57,21 @@ def list_queue(_list):
     """
     while _list:
         yield _list.pop(0)
+
+def base_64_url_for(data):
+    return urlpath.URL().with_scheme("base64").with_hostinfo(
+        base64.encodebytes(data).encode('utf-8')
+    )
+
+def open_mind_gz(path, mode='rb'):
+    return gzip.open(path, mode)
+
+file_ext_handlers = {'.gz': open_mind_gz}
+
+def open_file(path):
+    uri = urlpath.URL(path)
+    if not uri.scheme or uri.scheme == 'file://':
+        path = pathlib.Path(uri.name or uri.netloc or uri.hostname)
+    else:
+        raise NotImplementedError("Cannot open non-local file")
+    return file_ext_handlers[path.suffix](str(path))

@@ -8,7 +8,7 @@ import pytest
 import tempfile
 
 from cortex.utils import logging
-from cortex.utils import configuration
+from cortex import configuration
 
 
 @pytest.fixture()

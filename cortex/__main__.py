@@ -51,7 +51,7 @@ def validate_ip(addr):
 
 @thought.command('server')
 @click.argument("port", type=int) # , help="Port to listen on"
-@click.argument("dir", type=pathlib.Path) # , help='directory to store the thoughts in'
+@click.argument("dir", type=click.Path(exists=True)) # , help='directory to store the thoughts in'
 @click.argument("--bind", type=validate_ip, default='0.0.0.0') # , help="IPs to accept from"
 @click.pass_obj
 def thought_server_start(obj, port, dir, bind):

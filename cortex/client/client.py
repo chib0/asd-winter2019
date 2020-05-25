@@ -2,8 +2,8 @@ import urlpath
 
 from . import sample_reader, protobuf_parser
 from cortex.core import cortex_pb2
-from cortex.utils import configuration
-
+from cortex import configuration
+from cortex.utils import open_file
 
 class ClientHTTPSession:
     SCHEME = 'http'
@@ -38,12 +38,12 @@ class ClientHTTPSession:
         :param serializer:
         :return:
         """
-        #TODO: add configuration filtering
+        #TODO: add configuration filtering? here?
         return thought.serialize(serializer)
 
     def send_thought(self, thought, serializer):
         thought_url = self.url / 'user' / str(thought.user_id)
-        data =self.serialize_thought(thought, serializer)
+        data = self.serialize_thought(thought, serializer)
         headers = {'Content-Type': 'application/octet-stream'} if not isinstance(data, bytes) else {}
         resp = thought_url.post(data=data, headers=headers)
         return resp.ok
@@ -55,8 +55,8 @@ def _upload_sample(thought_collection, session):
             session.send_thought(thought, cortex_pb2.Snapshot.SerializeToString)
 
 def upload_sample(host, port, sample_path):
-    with sample_reader.SampleReader(sample_path, protobuf_parser.ProtobufSampleParser()) as reader, \
-                     ClientSession.start(host, port) as session:
+    with open_file(sample_path) as sample, ClientSession.start(host, port) as session:
+        reader = sample_reader.SampleReader(sample, protobuf_parser.ProtobufSampleParser())
         _upload_sample(reader, session)
 
 

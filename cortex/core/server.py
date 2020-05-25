@@ -12,21 +12,22 @@ import click
 
 import threading
 
-from cortex import utils
-from cortex.utils import logging
+from cortex import utils, configuration
+from cortex.utils import logging, dispatchers
 from cortex.core import cortex_rest_server
 
 module_logger = logging.get_module_logger(__file__)
 
-def get_server(publish):
-    return cortex_rest_server.get_server(publish)
+def get_server(publish, encoder):
+    return cortex_rest_server.get_server(publish,
+                                         message_encoder=encoder or configuration.raw_message_encoder())
 
-def _run_server(host, port, publish, run_threaded=False):
+def _run_server(host, port, publish, encoder=None, run_threaded=False):
     module_logger.debug("getting server...")
-    server = get_server(publish)
+    server = get_server(publish, encoder)
     server_args = dict(host=host, port=port)
     if run_threaded:
-        t = threading.Thread(name=utils.configuration.get_config()[utils.configuration.CONFIG_SERVER_THREAD_NAME],
+        t = threading.Thread(name=configuration.get_config()[configuration.CONFIG_SERVER_THREAD_NAME],
                          target=server.run,
                          kwargs=server_args)
         module_logger.info(f"starting {server} on {host}:{port} on thread...")
@@ -46,12 +47,13 @@ def cli():
 @click.argument('publish_url')
 def run_server_cli(host, port, publish_url):
     publisher = None
-    with utils.logging.log_exception(logger=module_logger, to_suppress=(Exception,)):
-        publisher = utils.dispatchers.get_dispatcher(publish_url,
-                                         utils.configuration.get_config()[utils.configuration.CONFIG_SERVER_PUBLISH_TOPICS])
+    with logging.log_exception(logger=module_logger, to_suppress=(Exception,)):
+        publisher = dispatchers.repository.DispatcherRepository.get_repo().get_dispatcher(publish_url,
+                                                                                          configuration.get_config()[configuration.CONFIG_SERVER_PUBLISH_TOPICS])
     if not publisher:
         click.prompt("couldn't find publisher for the given URL")
         exit(-1)
+
     module_logger.info(f"got publisher {publisher}")
 
     with utils.logging.log_exception(logger=module_logger, to_suppress=(Exception,)):

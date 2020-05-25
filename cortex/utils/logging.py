@@ -4,7 +4,7 @@ import logging
 import sys
 from pathlib import Path
 
-from cortex.utils import configuration
+from cortex import configuration
 
 
 def get_logger(name, custom_handlers=()):

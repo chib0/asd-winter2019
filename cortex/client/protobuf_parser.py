@@ -41,7 +41,7 @@ class ProtobufSampleParser:
     def user(self):
         return self._user or self.parse_user()
 
-    @utils.decorators.call_once
+    @utils.decorators.once_per_args
     def parse_user(self, stream):
         self._user = cortex_pb2.User()
         ok = self.read_message(stream, self._user)

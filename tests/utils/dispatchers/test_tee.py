@@ -34,18 +34,18 @@ def bound_Tee(monkeypatch, cons_mock, pub_mock):
 def test_get_tee_looks_lookups_according_to_uri(monkeypatch, patched_tee, cons_mock, pub_mock):
     cons_uri = "test://domain:123/cons"
     pub_uri = "test://domain:123/pub"
-    t = patched_tee.get_topic_tee('test_topic', cons_uri, pub_uri)
+    t = patched_tee.get_topic_tee('test_topic', 'test_topic_out', cons_uri, pub_uri)
     assert t.consumer == cons_mock.return_value
     assert t.publisher == pub_mock.return_value
-    assert cons_mock.called_once_with(None, cons_uri)
-    assert pub_mock.called_once_with('test_topic', pub_uri)
+    assert cons_mock.called_once_with('test_topic', cons_uri)
+    assert pub_mock.called_once_with('test_topic_out', pub_uri)
 
 def test_get_tee_raises_if_consumer_not_found(monkeypatch, patched_tee, cons_mock, pub_mock):
     cons_mock.return_value = None
     cons_uri = "test://domain:123/cons"
     pub_uri = "test://domain:123/pub"
     with pytest.raises(ValueError):
-        t = tee.get_topic_tee('test_topic', cons_uri, pub_uri)
+        t = tee.get_topic_tee('test_topic', 'test_topic_out', cons_uri, pub_uri)
 
 
 def test_get_tee_raises_if_publisher_not_found(monkeypatch, patched_tee, cons_mock, pub_mock):
@@ -53,7 +53,7 @@ def test_get_tee_raises_if_publisher_not_found(monkeypatch, patched_tee, cons_mo
     cons_uri = "test://domain:123/cons"
     pub_uri = "test://domain:123/pub"
     with pytest.raises(ValueError):
-        t = tee.get_topic_tee('test_topic', cons_uri, pub_uri)
+        t = tee.get_topic_tee('test_topic', 'test_topic_out', cons_uri, pub_uri)
 
 def test_tee_raises_on_none_consumer():
     with pytest.raises(ValueError):

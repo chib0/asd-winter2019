@@ -1,11 +1,11 @@
 import functools
 import json
 
-from cortex.utils.dispatchers import get_dispatcher
+from cortex.utils.dispatchers import repository
 
 def get_topic_dispatcher(topic, uri):
-    disp = get_dispatcher(uri, topic)
-    return TopicDispatcher.wrap_dispatcher(disp, topic)
+    disp = repository.DispatcherRepository.get_repo().get_dispatcher(uri, topic)
+    return TopicDispatcher.wrap_dispatcher(topic, disp)
 
 class TopicDispatcher:
     """
@@ -45,7 +45,6 @@ class TopicDispatcher:
             raise RuntimeError("Could not publish to non-running publisher")
         self.dispatcher.publish(self.topic, data)
 
-
     def result_publisher(self, f=None, /, message_encoder=json.dumps):
         """
         returns a function that publishes the results of the given function over the given topic.
@@ -71,3 +70,7 @@ class TopicDispatcher:
 
     def stop(self):
         self.dispatcher.stop()
+
+    @property
+    def running(self):
+        return self.dispatcher.running

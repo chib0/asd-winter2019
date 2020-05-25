@@ -1,7 +1,7 @@
 from flask import Flask, request
 
 from cortex import utils
-from cortex.utils import configuration
+from cortex import configuration
 from cortex.utils.filesystem import MessageRecord
 
 
@@ -12,7 +12,7 @@ def get_logger():
 get_logger.counter = 0
 
 
-def get_server(publisher, server_name="cortex_api", *flask_args, **flask_kwargs):
+def get_server(publisher, message_encoder, server_name="cortex_api", *flask_args, **flask_kwargs):
     """
     Gets a server that accepts a thought and forwards it to the dispatcher.
     The server also gives configuration to users that request it.
@@ -22,6 +22,7 @@ def get_server(publisher, server_name="cortex_api", *flask_args, **flask_kwargs)
     if I am to add servers later, they will be molded by this functionality ( which is run with a host and port,
      terminate when thread dies.)
 
+    :param message_encoder: a callable that gets the message and encodes it into a string
     :param publisher: whatever pieplines the requests further down to the backend.
     :param server_name: ...
     :param flask_args: args to pass to the Flask constructor after the name. the name of this server is always 'api'
@@ -38,10 +39,7 @@ def get_server(publisher, server_name="cortex_api", *flask_args, **flask_kwargs)
         :param id: the id from the url
         :return: empty string. this happens whether the backend manages to save the thought or not.
         """
-        with MessageRecord.create() as mr:
-            mr.write(request.data)
-            message = dict(user=id, snapshot=mr.uri)
-
+        message = message_encoder(request.data, user=id)
         publish_func(configuration.topics.snapshot, message)
         return 'OK'
 

@@ -11,9 +11,10 @@ SCHEME = "rabbitmq"
 
 module_logger = utils.logging.get_module_logger(__file__)
 
-def get_dispatcher(url, topics, **kwargs):
+def get_dispatcher(url, topics, auto_start=True, **kwargs):
     """
     creates a dispatcher and connects to the given url
+    :param auto_start: bool: start the dispatcher right away (on False, this will not connect the dispatcher)
     :param url: where to connect
     :param topics: topics that could be published
     :param kwargs: anything to pass on to the dispatcher implementation (TODO)
@@ -25,7 +26,8 @@ def get_dispatcher(url, topics, **kwargs):
 
     topics = topics if not isinstance(topics, str) else (topics, )
     dispatcher = RabbitQueueDispatcher(pika.ConnectionParameters(host=url.hostname, port=url.port), topics)
-    dispatcher.start()
+    if auto_start:
+        dispatcher.start()
     return dispatcher
 
 
@@ -40,6 +42,7 @@ class RabbitQueueDispatcher:
         self._queue = []
 
     def dispatch(self, topic, data, again=False):
+        self._logger.info(f"got {topic}, {data} to publish {'again' if again else ''}")
         if not self._send_with_existing_channel(topic, data):
             self._logger.debug("creating new channel to dispatch with")
             self._queue.insert(0 if again else len(self._queue), (topic, data))
@@ -56,9 +59,11 @@ class RabbitQueueDispatcher:
 
     def _send_with_existing_channel(self, topic, data):
         if not self._channel:
+            self._logger.debug("no channel, can't send with existing")
             return False
 
         with utils.logging.log_exception(self._logger, to_suppress=Exception, format=lambda e: f"had error sending {e}"):
+            self._logger.info(f"sending {topic}: {data}")
             self._channel.basic_publish('', topic, data)
             return True
 

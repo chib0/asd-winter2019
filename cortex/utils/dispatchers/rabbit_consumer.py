@@ -17,14 +17,15 @@ LOGGER = get_module_logger(__file__)
 
 SCHEME = 'rabbitmq'
 
-def get_consumer(url, handlers=None):
+def get_consumer(url, handlers=None, auto_start=False ):
     url = urlpath.URL(url)
     if not url.scheme == SCHEME:
         return None
 
     handlers = handlers or {}
     cons  = RabbitQueueConsumer(pika.ConnectionParameters(host=url.hostname, port=url.port), handlers)
-
+    if auto_start:
+        cons.start()
     return cons
 
 
@@ -63,9 +64,13 @@ class RabbitQueueConsumer:
     def _run_consumer(self, topic):
         with self._io_list_lock:
             record = self.handlers.get(topic, None)
-        with log_exception(self._logger, to_suppress=(Exception, RuntimeError),
+        if record is None:
+            self._logger.error(f"handler for {topic} is none")
+
+        else:
+            with log_exception(self._logger, to_suppress=(Exception, RuntimeError),
                            format=lambda e: f"thread {threading.current_thread()} exception while consuming: {e}"):
-            record.channel.start_consuming()
+                record.channel.start_consuming()
         with self._io_list_lock:
             self.handlers.pop(topic)
             if not len(self.handlers):
@@ -114,8 +119,8 @@ class RabbitQueueConsumer:
                                                                     message_decoder=message_decoder),
                               auto_ack=True)
         with self._io_list_lock:
-            self.handlers[topic] = record =  self.HandlerRecord(callback=handler, thread=None, channel=channel)
-        t = self._make_consumer(channel, auto_start)
+            self.handlers[topic] = record = self.HandlerRecord(callback=handler, thread=None, channel=channel)
+        t = self._make_consumer(topic, auto_start)
         record.thread = t
         return handler
 
@@ -155,8 +160,14 @@ class RabbitQueueConsumer:
         esures all the registered handlers have had a record created
         :return:
         """
-        for topic, handler in filter(lambda x: not isinstance(x, self.HandlerRecord), self.handlers):
-                self.register_handler(topic, handler)
+        to_be_added = tuple(filter(lambda x: not isinstance(x[1], self.HandlerRecord), self.handlers.items()))
+        with self._io_list_lock:
+            for key in to_be_added:
+                self._logger.error(f"popping {key} to be added)")
+                self.handlers.pop(key)
+        for topic, values in to_be_added:
+                self._logger.error(f"registering: {topic} -> {values}")
+                self.register_handler(topic, values)
 
     @property
     def running(self):

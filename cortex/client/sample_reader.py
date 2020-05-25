@@ -14,6 +14,7 @@ What I chose to do is have a SampleThoughtReader which:
  1. Implements the logic of reading thoughts one by another
  2. Can be decorated with a stream type (for context manager 'open' functions) and a format parser.
 """
+from contextlib import contextmanager
 
 
 class SampleReader:

@@ -5,7 +5,7 @@ from pytest_httpserver import HTTPServer
 from cortex.client import cortex_pb2
 from cortex.client.client import ClientHTTPSession
 from cortex import Thought
-from cortex.utils import configuration
+from cortex import configuration
 
 @pytest.fixture()
 def config_dict():
@@ -33,8 +33,8 @@ def test_send_thought_to_correct_url(sessionserver):
     sessionserver.expect_oneshot_request(f'/user/{USER_ID}').respond_with_json({})
     with sessionserver.wait(raise_assertions=True, timeout=2):
         import json
-        client_session.send_thought(Thought.from_snapshot(cortex_pb2.User(user_id=USER_ID), {}),
-                                    lambda x: json.dumps(x.snapshot))
+        client_session.send_thought(Thought.from_snapshot(cortex_pb2.User(user_id=USER_ID), cortex_pb2.Snapshot()),
+                                     lambda x: b'string')
 
 def test_get_config_sets_config(httpserver, config_dict):
     client = ClientHTTPSession(httpserver.url_for("/"))

@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import functools
-import json
 
-from cortex.utils.dispatchers.repository import get_consumer
+from cortex.utils.dispatchers import repository
 
-def get_topic_consumer(topic, uri):
-    consumer = get_consumer(uri, {})
+def get_topic_consumer(topic, uri, auto_start=False):
+    consumer = repository.ConsumerRepository.get_repo().get_consumer(uri, {}, auto_start=auto_start)
     return TopicConsumer.wrap_consumer(topic, consumer)
 
 class TopicConsumer:
     @classmethod
     def wrap_consumer(cls, topic : str, consumer, callback=None, message_decoder=None, auto_start=False):
-        if consumer.running():
+        if consumer.running:
             # TODO: I should probably be able to support that, but it creates clutter.
             raise RuntimeError("cant wrap running consumer")
         wrapped = cls(topic, consumer)
@@ -54,6 +53,9 @@ class TopicConsumer:
         self.bind(callback, message_decoder=message_decoder, auto_start=auto_start)
         return callback
 
+    @property
+    def running(self):
+        return self._consumer.running
 
     @property
     def bound(self):

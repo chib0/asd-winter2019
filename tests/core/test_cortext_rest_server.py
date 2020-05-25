@@ -3,17 +3,20 @@ from unittest.mock import MagicMock
 import pytest
 
 from cortex.core import cortex_rest_server
-from cortex.utils import configuration
+from cortex import configuration
 
 
 @pytest.fixture
 def mock_publish():
     return MagicMock()
 
+@pytest.fixture()
+def mock_encoder():
+    return MagicMock()
+
 @pytest.fixture
-def mock_server(mock_publish, monkeypatch):
-    monkeypatch.setattr(cortex_rest_server, 'MessageRecord', MagicMock(name='MessageRecord'))
-    return cortex_rest_server.get_server(mock_publish)
+def mock_server(mock_publish, mock_encoder, monkeypatch):
+    return cortex_rest_server.get_server(mock_publish, mock_encoder)
 
 
 @pytest.fixture
@@ -24,8 +27,8 @@ def client(mock_server):
         yield client
 
 
-def test_get_server_runnable(mock_publish):
-    assert callable(cortex_rest_server.get_server(mock_publish).run)
+def test_get_server_runnable(mock_publish, mock_encoder):
+    assert callable(cortex_rest_server.get_server(mock_publish, mock_encoder).run)
 
 
 def test_server_returns_ok_on_post(client):
@@ -38,7 +41,7 @@ def test_server_returns_ok_on_post(client):
     assert "OK" in rv.data.decode("utf-8")
 
 
-def test_server_publishes_thought(mock_publish, client):
+def test_server_publishes_thought(mock_publish, mock_encoder, client):
     user_id = 1234
     test_data = "testdatatestdata"
     rv = client.post(
@@ -46,11 +49,16 @@ def test_server_publishes_thought(mock_publish, client):
         data=test_data
     )
     mock_publish.assert_called_once()
+    mock_encoder.assert_called_once()
     publish_args = mock_publish.call_args[0]
+    encoder_args = mock_encoder.call_args
 
     assert configuration.topics.snapshot == publish_args[0]
-    assert int(publish_args[1]['user']) == user_id
-    assert all(i in publish_args[1]['snapshot']._extract_mock_name() for i in ['MessageRecord.create', 'uri'])
+    print(encoder_args)
+    assert int(encoder_args.kwargs['user']) == user_id
+    assert encoder_args[0][0].decode("utf-8") == test_data
+
+
 
 
 def test_server_retrieves_configuration(client, monkeypatch):

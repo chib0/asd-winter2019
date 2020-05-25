@@ -64,9 +64,9 @@ class Thought:
         Returns a string representation of the thought.
         The default assumes we want the snapshot in a Protobuf format.
         """
-        if not inspect.isfunction(serializer):
-            return serializer.serialize(self)
-        return serializer(self)
+        if not callable(serializer):
+            return serializer.serialize(self.snapshot)
+        return serializer(self.snapshot)
 
 
 
