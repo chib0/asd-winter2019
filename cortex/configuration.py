@@ -1,5 +1,6 @@
 import json
 import pathlib
+import tempfile
 from pathlib import Path
 
 from cortex.utils.decorators import cache_res
@@ -26,8 +27,12 @@ CONFIG_SERVICE_DOCKER_IMAGES = 'server-docker-image-data'
 CONFIG_USER_STORAGE_BASE = 'server-user-shared-storage'
 
 
+def _shard_storage_base():
+    return pathlib.Path(tempfile.mkdtemp(prefix='cortex_tests') if testing() else '/var')
+
+
 def shared_storage_path():
-    out = pathlib.Path("/var") / ("tmp" if testing() else "") / "cortex" / "server"
+    out = _shard_storage_base() / "cortex" / "server"
     out.mkdir(parents=True, exist_ok=True)
     return out
 
@@ -65,7 +70,8 @@ class topics:
 
 
 def testing():
-    return (Path(__file__).parent / 'testing').exists()
+    import sys
+    return 'test' in sys.argv[0]
 
 def get_raw_data_topic_name():
     return topics.snapshot
