@@ -51,7 +51,7 @@ def run_server_cli(host, port, publish_url):
         publisher = dispatchers.repository.DispatcherRepository.get_repo().get_dispatcher(publish_url,
                                                                                           configuration.get_config()[configuration.CONFIG_SERVER_PUBLISH_TOPICS])
     if not publisher:
-        click.prompt("couldn't find publisher for the given URL")
+        click.echo("couldn't find publisher for the given URL")
         exit(-1)
 
     module_logger.info(f"got publisher {publisher}")

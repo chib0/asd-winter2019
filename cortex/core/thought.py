@@ -68,6 +68,9 @@ class Thought:
             return serializer.serialize(self.snapshot)
         return serializer(self.snapshot)
 
-
+    def serialize_user(self, serializer):
+        if not callable(serializer):
+            return serializer.serialize(self.snapshot)
+        return serializer(self.metadata)
 
 

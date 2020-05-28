@@ -122,7 +122,7 @@ def test_tee_bind_stops_on_none_callback(monkeypatch, mocked_Tee):
     mocked_Tee.stop.assert_called_once()
 
 def test_tee_with_publisher_binds_result_publisher(bound_Tee, monkeypatch):
-    bound_Tee.consumer.bind.assert_called_once_with(bound_Tee.publisher.results_publisher.return_value,
+    bound_Tee.consumer.bind.assert_called_once_with(bound_Tee.publisher.result_publisher.return_value,
                                                      message_decoder=None)
 
 def test_tee_without_publisher_binds_callback(pub_mock, monkeypatch):

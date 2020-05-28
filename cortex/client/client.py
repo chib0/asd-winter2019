@@ -1,4 +1,8 @@
+import json
+
 import urlpath
+from funcy import once_per
+from google.protobuf.json_format import MessageToDict
 
 from . import sample_reader, protobuf_parser
 from cortex.core import cortex_pb2
@@ -41,18 +45,29 @@ class ClientHTTPSession:
         #TODO: add configuration filtering? here?
         return thought.serialize(serializer)
 
-    def send_thought(self, thought, serializer):
-        thought_url = self.url / 'user' / str(thought.user_id)
+    def send_thought(self, thought, serializer, metadata_serializer):
+        self.ensure_user(thought,  metadata_serializer)
         data = self.serialize_thought(thought, serializer)
-        headers = {'Content-Type': 'application/octet-stream'} if not isinstance(data, bytes) else {}
-        resp = thought_url.post(data=data, headers=headers)
+        content_type =  'application/octet-stream' if isinstance(data, bytes) else ''
+        return self.post_with_content_type(f'user/{thought.user_id}', data, content_type= content_type)
+
+    @once_per('self')
+    def ensure_user(self, thought, serializer):
+        data = thought.serialize_user(serializer)
+        return self.post_with_content_type('users', data, 'application/json')
+
+    def post_with_content_type(self, path, data, content_type=None):
+        url = self.url / path
+        headers = {'Content-Type': content_type} if content_type else {}
+        resp = url.post(data=data, headers=headers)
         return resp.ok
+
 
 ClientSession = ClientHTTPSession
 
 def _upload_sample(thought_collection, session):
     for thought in thought_collection:
-            session.send_thought(thought, cortex_pb2.Snapshot.SerializeToString)
+            session.send_thought(thought, cortex_pb2.Snapshot.SerializeToString, lambda x: json.dumps(MessageToDict(x)))
 
 def upload_sample(host, port, sample_path):
     with open_file(sample_path) as sample, ClientSession.start(host, port) as session:

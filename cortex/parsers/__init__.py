@@ -11,7 +11,7 @@ from cortex.utils import logging,\
                             dispatchers
 
 from cortex.core import snapshot_xcoder
-from cortex.parsers.runner import ParserRunner
+from cortex.utils.plugin_runner import PluginRunner
 
 module_logger = logging.get_logger(__file__)
 
@@ -25,9 +25,9 @@ def cli():
 @click.argument('path', type=click.Path(exists=True))
 def parse(name, path):
     with logging.log_exception(module_logger, format=lambda x: f"Error running parser {name}: {x}"):
-            runner = ParserRunner(snapshot_xcoder.snapshot_decoder)
-            out = runner.run_parser(name, pathlib.Path(path).read_bytes())
-            print(json.dumps(str(out)))
+            runner = PluginRunner(repository.Repository.get(), snapshot_xcoder.snapshot_decoder)
+            out = runner.run(name, pathlib.Path(path).read_bytes())
+            click.echo(json.dumps(str(out)))
 
 
 @cli.command('run-parser')
@@ -36,13 +36,13 @@ def parse(name, path):
 def _run_parser(name, url):
     if not (dispatchers.repository.DispatcherRepository.get_repo().has_dispatcher(url) and
             dispatchers.repository.ConsumerRepository.get_repo().has_consumer(url)):
-        click.prompt(f"Error: no dispatcher/consumer pair for {url.scheme}")
+        click.echo(f"Error: no dispatcher/consumer pair for {url.scheme}")
         return -1
 
     with logging.log_exception(module_logger, to_suppress=(RuntimeError, Exception),
                                format=lambda x: f"Error running parser {name}: {x}"):
-        runner = ParserRunner(snapshot_xcoder.snapshot_decoder, json.dumps)
-        out = runner.run_parser_with_uri(name, uri=url)
+        runner = PluginRunner(repository.Repository.get(), snapshot_xcoder.snapshot_decoder, json.dumps)
+        out = runner.run_with_uri(name, uri=url)
 
 
 

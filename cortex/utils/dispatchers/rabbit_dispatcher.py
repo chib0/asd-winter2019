@@ -33,7 +33,7 @@ def get_dispatcher(url, topics, auto_start=True, **kwargs):
 
 class RabbitQueueDispatcher:
     def __init__(self, endpoints, topics):
-        self._logger = utils.logging.get_instance_logger(self.__class__.__name__)
+        self._logger = utils.logging.get_instance_logger(self)
         self._connection = None
         self._channel = None
         self._endpoints = endpoints

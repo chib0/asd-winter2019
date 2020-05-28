@@ -1,9 +1,9 @@
+import json
+
 from flask import Flask, request
 
 from cortex import utils
 from cortex import configuration
-from cortex.utils.filesystem import MessageRecord
-
 
 def get_logger():
     get_logger.counter += 1
@@ -47,6 +47,15 @@ def get_server(publisher, message_encoder, server_name="cortex_api", *flask_args
     def get_configuration():
         return configuration.get_config()[configuration.CONFIG_CLIENT_CONFIG]
 
+    @ThoughtAPI.route('/users', methods=["POST"])
+    def ensure_user():
+        user_info = request.json
+        # parsing here because this is hella simple
+        user_info['id'] = user_info.pop('userId')
+        gender_enum = user_info.get('gender', 0)
+        user_info['gender'] = 'Male' if gender_enum == 0 else 'Female' if gender_enum == 1 else 'Other'
+        publish_func(configuration.get_parsed_data_topic_name(configuration.topics.user_info), json.dumps(user_info))
+        return 'OK'
 
     return ThoughtAPI
 

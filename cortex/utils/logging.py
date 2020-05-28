@@ -15,17 +15,16 @@ def get_logger(name, custom_handlers=()):
     :param name: the name of the logger
     :param custom_handlers: an iterable of handlers to add to the logger. all handlers are normat python logging ones.
     """
-    # create logger with 'spam_application'
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
     config = configuration.get_config()
+    logger.setLevel(config[configuration.CONFIG_DEBUG_LEVEL])
     # create file handler which logs even debug messages
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     default_handler = logging.FileHandler(config['log_file']) if config.get('log_file', None) else \
         logging.StreamHandler(sys.stdout)
 
-    for handler in itertools.chain(custom_handlers, [default_handler]):
+    for handler in itertools.chain(custom_handlers, (default_handler,)):
         handler.setLevel(config[configuration.CONFIG_DEBUG_LEVEL])
         # create console handler with a higher log level
         handler.setFormatter(formatter)
