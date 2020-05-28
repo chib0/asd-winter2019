@@ -31,6 +31,7 @@ def test_send_thought_to_correct_url(sessionserver):
     client_session = ClientHTTPSession.start(sessionserver.host, sessionserver.port)
     USER_ID = 12345
     sessionserver.expect_oneshot_request(f'/user/{USER_ID}').respond_with_json({})
+    sessionserver.expect_oneshot_request(f'/users').respond_with_json({})
     with sessionserver.wait(raise_assertions=True, timeout=2):
         import json
         client_session.send_thought(Thought.from_snapshot(cortex_pb2.User(user_id=USER_ID), cortex_pb2.Snapshot()),
