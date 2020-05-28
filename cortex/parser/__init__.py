@@ -6,7 +6,7 @@ import click
 import urlpath
 
 
-from cortex.parsers import repository
+from cortex.parser import repository
 from cortex.utils import logging,\
                             dispatchers
 

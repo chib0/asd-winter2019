@@ -1,18 +1,14 @@
 
-import re
-
 from cortex.utils.repository_base import RepositoryBase, HandlerRecord
 
 
 class ParserRecord(HandlerRecord):
-    FirstCamelSub = re.compile('(.)([A-Z][a-z]+)')
-    SecondCamelSub = re.compile('([a-z0-9])([A-Z])')
     def __init__(self, prop):
         super().__init__(prop)
 
     def format_target_name(self):
         if self._toplevel_prop_name(self.handler).startswith("parse_"):
-            return self._toplevel_prop_name(self.handler).replace("parse_", "").lower()
+            return self._camel_to_snake(self._toplevel_prop_name(self.handler).replace("parse_", "").lower())
         else:
             return self._camel_to_snake(self._toplevel_prop_name(self.handler).split("Parser")[0])
 

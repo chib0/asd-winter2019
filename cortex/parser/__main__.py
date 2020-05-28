@@ -1,4 +1,4 @@
-from cortex.parsers import cli
+from cortex.parser import cli
 
 if __name__ == "__main__":
     cli()

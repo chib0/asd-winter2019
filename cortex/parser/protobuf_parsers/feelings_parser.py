@@ -5,7 +5,8 @@ from . import  parser_decorators as decos
 
 
 @decos.with_protobuf_snapshot(cortex_pb2.Snapshot)
-def parse_feelings(snapshot, rest):
-    out = {'user': rest['user'], 'timestamp': snapshot.datetime,
+@decos.with_user(type=int)
+def parse_feelings(user, snapshot, rest):
+    out = {'user': user, 'timestamp': snapshot.datetime,
            'result': {'feelings': MessageToDict(snapshot.feelings)}}
     return out

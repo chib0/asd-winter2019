@@ -9,13 +9,9 @@ class Consumer:
         self.url = urlpath.URL().with_scheme('http').with_hostinfo(host, port)
 
     def _request(self, *path_parts):
-        with suppress(requests.exceptions.HTTPError):
-            url =  self.url.joinpath(*map(str, path_parts))
-            print(url)
-            resp = url.get()
-            resp.raise_for_status()
-            return resp.json()
-        return None
+        url =  self.url.joinpath(*map(str, path_parts))
+        resp = url.get()
+        return resp.json() if resp.ok else None
 
     def get_users(self):
         return self._request('users')

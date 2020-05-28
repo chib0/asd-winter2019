@@ -43,9 +43,3 @@ def test_get_config_sets_config(httpserver, config_dict):
     with httpserver.wait(raise_assertions=True, timeout=2):
         client.get_config()
     assert client._server_config == config_dict
-
-
-
-
-
-

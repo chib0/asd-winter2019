@@ -16,11 +16,13 @@ def cli(ctx, host, port):
 def get_users(ctx):
     click.echo(ctx.obj['consumer'].get_users())
 
+
 @cli.command()
 @click.argument('user_id')
 @click.pass_context
 def get_user(ctx, user_id):
     click.echo(ctx.obj['consumer'].get_user(user_id))
+
 
 @cli.command()
 @click.argument('user_id')
