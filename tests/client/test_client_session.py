@@ -34,7 +34,7 @@ def test_send_thought_to_correct_url(sessionserver):
     with sessionserver.wait(raise_assertions=True, timeout=2):
         import json
         client_session.send_thought(Thought.from_snapshot(cortex_pb2.User(user_id=USER_ID), cortex_pb2.Snapshot()),
-                                     lambda x: b'string')
+                                     lambda x: b'string', lambda x: x)
 
 def test_get_config_sets_config(httpserver, config_dict):
     client = ClientHTTPSession(httpserver.url_for("/"))
