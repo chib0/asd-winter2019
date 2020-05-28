@@ -54,6 +54,3 @@ def get_result(ctx, user_id, snapshot_id_or_timestamp, result):
 def get_result_data(ctx, user_id, snapshot_id_or_timestamp, result):
     click.echo(ctx.obj['consumer'].get_result_data(user_id, snapshot_id_or_timestamp, result))
 
-
-
-

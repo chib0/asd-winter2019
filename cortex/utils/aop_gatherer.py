@@ -224,3 +224,4 @@ class Repository:
 
     def prop_name_ends_with(self, param):
         self.prop_name_matches(f".*{param}$")
+        

@@ -11,4 +11,3 @@ class ThoughtServer:
         """
         self.listener = listener
         self.publisher = publisher
-

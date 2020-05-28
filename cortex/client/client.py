@@ -73,9 +73,3 @@ def upload_sample(host, port, sample_path):
     with open_file(sample_path) as sample, ClientSession.start(host, port) as session:
         reader = sample_reader.SampleReader(sample, protobuf_parser.ProtobufSampleParser())
         _upload_sample(reader, session)
-
-
-
-
-
-

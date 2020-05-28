@@ -101,3 +101,4 @@ def get_api(app_name, database, db_res_encoder=json.dumps):
         return database.get_snapshot(user_id, snapshot)[result]
 
     return app
+

@@ -43,6 +43,3 @@ def _run_parser(name, url):
                                format=lambda x: f"Error running parser {name}: {x}"):
         runner = PluginRunner(repository.Repository.get(), snapshot_xcoder.snapshot_decoder, json.dumps)
         out = runner.run_with_uri(name, uri=url)
-
-
-
