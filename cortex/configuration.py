@@ -23,7 +23,6 @@ CONFIG_SAVER_DIR = 'server-saver-dir'
 
 CONFIG_SERVICE_DOCKER_IMAGES = 'server-docker-image-data'
 
-
 CONFIG_USER_STORAGE_BASE = 'server-user-shared-storage'
 
 
