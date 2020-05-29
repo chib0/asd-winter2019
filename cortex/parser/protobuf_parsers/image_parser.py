@@ -4,8 +4,10 @@ from cortex.core import cortex_pb2
 from cortex.utils import images, user_storage
 
 
-@decos.with_protobuf_snapshot(cortex_pb2.Snapshot)
-@decos.with_user(type=int)
+
+@decos.with_protobuf_snapshot(cortex_pb2.Snapshot,
+                              user_key='user',
+                              user_type=int)
 def parse_color_image(user, snapshot, rest):
     ci = snapshot.color_image
     im = images.ColorImage.from_bytes(ci.width, ci.height, ci.data)
@@ -15,8 +17,9 @@ def parse_color_image(user, snapshot, rest):
     return {'user': user, 'timestamp': snapshot.datetime, 'result': {'color_image' : str(uri)}}
 
 
-@decos.with_protobuf_snapshot(cortex_pb2.Snapshot)
-@decos.with_user(type=int)
+@decos.with_protobuf_snapshot(cortex_pb2.Snapshot,
+                              user_key='user',
+                              user_type=int)
 def parse_depth_image(user, snapshot, rest):
     di = snapshot.depth_image
     im = images.DepthImage.from_bytes(di.width, di.height, di.data)

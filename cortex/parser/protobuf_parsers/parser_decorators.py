@@ -1,13 +1,14 @@
 import functools
 
 
-def with_protobuf_snapshot(pb_type, snapshot_key=None):
+def with_protobuf_snapshot(pb_type, snapshot_key=None, user_key=None, user_type=int):
     def decorator(f):
         @functools.wraps(f)
         def wrapper(data, *args, **kwargs):
             container = pb_type()
             pb_type.ParseFromString(container, data[snapshot_key or 'snapshot'])
-            return f(container, data, *args, **kwargs)
+            user = user_type(data[user_key or 'user'])
+            return f(user, container, data, *args, **kwargs)
         return wrapper
     return decorator
 

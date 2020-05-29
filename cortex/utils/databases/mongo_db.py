@@ -20,6 +20,7 @@ class MongoDB:
 
     @classmethod
     def connect(cls, url):
+        url = urlpath.URL(url)
         return cls(pymongo.MongoClient(host=url.hostname, port=url.port), url)
 
     def update_snapshot(self, user, timestamp, data):

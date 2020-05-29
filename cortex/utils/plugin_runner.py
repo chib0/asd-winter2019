@@ -25,7 +25,7 @@ class PluginRunner:
         with contextlib.suppress(KeyboardInterrupt):
             tee.start()
             while blocking:
-                if not tee.consumer.running or not tee.publisher.running:
+                if not (tee.consumer.running and tee.publisher.running):
                     sleep(1)
         if blocking:
             tee.stop()
@@ -42,7 +42,7 @@ class PluginRunner:
                                             consumer_uri=uri,
                                             publisher_uri=publisher_uri or uri)
         parser = handler.handler
-        parser = funcy.silent(parser if callable(parser) else parser.parse)
+        parser = parser if callable(parser) else parser.parse
 
         self._run_with_tee(parser, tee, blocking=blocking)
 

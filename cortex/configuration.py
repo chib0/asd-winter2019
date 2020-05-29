@@ -27,7 +27,7 @@ CONFIG_USER_STORAGE_BASE = 'server-user-shared-storage'
 
 
 def _shard_storage_base():
-    return pathlib.Path(tempfile.mkdtemp(prefix='cortex_tests') if testing() else '/var')
+    return pathlib.Path(tempfile.mkdtemp(prefix='cortex_tests') if testing() else '~/cortex_store').expanduser()
 
 
 def shared_storage_path():
