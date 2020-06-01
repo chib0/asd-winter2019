@@ -61,7 +61,7 @@ class Consumer:
         :param result:
         :return:
         """
-        return self._request('users', user_id, 'snapshots', snapshot_id_or_timestamp, result)
+        return self._request('users', user_id, 'snapshots', snapshot_id_or_timestamp, result.replace("-", "_"))
 
     def get_result_data(self, user_id, snapshot_id_or_timestamp, result):
         """
@@ -71,7 +71,7 @@ class Consumer:
         :param result:
         :return:
         """
-        return self._request('users', user_id, 'snapshots', snapshot_id_or_timestamp, result, 'data')
+        return self._request('users', user_id, 'snapshots', snapshot_id_or_timestamp, result.replace("-", "_"), 'data')
 
     @property
     def host(self):
