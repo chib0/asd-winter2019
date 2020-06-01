@@ -1,3 +1,6 @@
+"""
+just a cool meeting place for all sorts of decorators to hang
+"""
 from functools import wraps, lru_cache
 from funcy import once_per_args, once
 

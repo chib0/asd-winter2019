@@ -1,7 +1,10 @@
 [![Build Status](https://travis-ci.com/chib0/asd-winter2019.svg?branch=master)](https://travis-ci.com/chib0/asd-winter2019)
 [![Coverage](https://codecov.io/gh/chib0/asd-winter2019/branch/master/graph/badge.svg)](https://github.com/chib0/asd-winter2019)
 
-# All Your Thoughts Are Belong To Us
+# Cortex 
+**All Your Thoughts Are Belong To Us**
+
+
 This is a project for the Advanced System Design Course of TAU / Winter '19-'20.
 It's a not-too-big client-server app that teaches and showcases how to use different CI/CD tools as well as good software design patterns
 
@@ -23,15 +26,29 @@ I'll try to keep the code documented (as well as self documenting) while doing m
 #Installation
 
 ####package installation
+######Requirements:
+
+Most of the requirements are installed by the install script. I did not want to implement an installer for docker, so
+to work with it, you would have to pre-install these yourself:
+- docker
+- docker-compose version >3
+
+######Installation
 running `/scripts/install.sh` will install the package on the current system, requiring only python and virtualenv to be installed.
+Specify `with-docker` to build a docker image that will be usable with `docker-compose up`
 
-####dockerizing
-
-running `scripts/make-dockers` will create dockers for the systems.
 
 #### Running
-`/scripts/run-pipeline.sh` will run the pipeline after the dockers have been created.
+If the system is ran using dockers, using 
+`/scripts/run-pipeline.sh` will run the pipeline after the dockers have been created. 
 
+Ports for the services are as follows: 
+- core-server: 8000
+- rest-api: 5000
+- gui: 8080
+
+All accessible through localhost.
+To allow other hosts to access the GUI, make sure that the API server hostname (in docker-compose.yaml) is a correct, accessible IP.
 
 # Usage
 For each runnable, see readme in every cortex/\<Runnable\>
@@ -61,7 +78,8 @@ The pipeline is implemented using the Tee object, which allows binding a functio
 Every part of the pipeline accepts a encoders and decoders for the output and input respectively, for easy changing of the transport.
 
  
-
+## Parser Expansion:
+See Plugins.md
 
 
 # Conclusion

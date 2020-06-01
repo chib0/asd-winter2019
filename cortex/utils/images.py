@@ -1,3 +1,6 @@
+"""
+implements saving and reading of Image types in the framework
+"""
 import io
 import json
 import struct

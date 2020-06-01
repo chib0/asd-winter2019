@@ -1,7 +1,12 @@
+"""
+This weird thing is meant to accept a repository and run a plugin from it by name.
+it passes a message encoder and decoder in so that the plugin itself can have an easy life just accepting the data.
+
+
+"""
+
 import contextlib
 from time import sleep
-
-import funcy
 
 from cortex import configuration
 from cortex.utils import dispatchers
@@ -31,6 +36,14 @@ class PluginRunner:
             tee.stop()
 
     def run_with_tee(self, name, tee, blocking=False):
+        """
+        running the plugin with a pre-created tee.
+        this will get the plugin by name, bind it's handler to the tee with the plugin target, and either block or not.
+        :param name: name of the plugin to run
+        :param tee: the Tee to run this with.
+        :param blocking: whether or not to wait for the tee to finish. note that if this is non-blocking the user would have to make sure the tee is stopped correctly.
+        :return:
+        """
         handler = self.repo.get_handler(name)
         if not handler:
             raise RuntimeError(f"No entry for {name} in {self.repo}")
@@ -48,6 +61,16 @@ class PluginRunner:
 
 
     def run_with_uri(self, name, uri, publisher_uri=None, blocking=True):
+        """
+        running the plugin with a given uri.
+        This will get the plugin by name, get a consumer from the given uri and a dispatcher on (publisher_uri or uri).
+        This pair will then be bound to a Tee, and then start and block if required.
+        :param publisher_uri: in case the publisher is on a different server, or a different beast, we allow it to have a different uri.
+        :param name: name of the plugin to run
+        :param uri: the consumer uri, i.e where to read data from
+        :param blocking: whether or not to wait for the tee to finish. note that if this is non-blocking the user would have to make sure the tee is stopped correctly.
+        :return:
+        """
         handler = self.repo.get_handler(name)
         if not handler:
             raise RuntimeError(f"No entry for {name} in {self.repo}")
@@ -55,6 +78,12 @@ class PluginRunner:
 
 
     def run(self, name, data):
+        """
+        simply execute the plugin by name on the given data without running it through the pipeline.
+        :param name:
+        :param data:
+        :return:
+        """
         handler = self.repo.get_handler(name)
         if not handler:
             raise RuntimeError(f"No entry for {name} in  in {self.repo}")

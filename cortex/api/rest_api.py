@@ -6,7 +6,7 @@ from flask_cors import CORS
 import json
 import mimetypes
 
-from cortex.utils.user_storage import UserStorage
+from cortex.utils.filesystem.user_storage import UserStorage
 from cortex.utils.images import DepthImage
 
 EXPOSED_SCHEMES = ('file',)

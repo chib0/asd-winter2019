@@ -1,8 +1,8 @@
 
 from . import  parser_decorators as decos
 from cortex.core import cortex_pb2
-from cortex.utils import images, user_storage
-
+from cortex.utils import images
+from cortex.utils.filesystem import user_storage
 
 
 @decos.with_protobuf_snapshot(cortex_pb2.Snapshot,

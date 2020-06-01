@@ -1,4 +1,6 @@
-
+"""
+The functionality implemented in this file allows for plugins to be collected.
+"""
 import re
 from pathlib import Path
 import abc
@@ -9,6 +11,10 @@ from cortex.utils.logging import log_exception
 
 
 class HandlerRecord(abc.ABC):
+    """
+    This holds information about a plugin, formats it's name and target(topic), as well as selects the handler.
+    Implementors of this abstract class basically just need to format the topic of the handler.
+    """
     FirstCamelSub = re.compile('(.)([A-Z][a-z]+)')
     SecondCamelSub = re.compile('([a-z0-9])([A-Z])')
     def __init__(self, prop):
@@ -43,6 +49,9 @@ class HandlerRecord(abc.ABC):
 
 
 class RepositoryBase(aop_gatherer.Repository, abc.ABC):
+    """
+    Implements common logic for all plugin repositories
+    """
     class __GetChecker: pass
 
     def __init__(self, through_get_checker, *args, **kwargs):
@@ -59,6 +68,10 @@ class RepositoryBase(aop_gatherer.Repository, abc.ABC):
     @property
     @abc.abstractmethod
     def record_maker(self):
+        """
+        returns the function that creates a HandlerRecord subclass for this type of repository
+        :return:
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -78,6 +91,11 @@ class RepositoryBase(aop_gatherer.Repository, abc.ABC):
 
     @classmethod
     def get(cls, paths=()):
+        """
+        returns a new repository. note that __init__ is 'private' and you have to use this.
+        :param paths:
+        :return:
+        """
         repository = cls(cls.__GetChecker(), paths=paths or configuration.get_config()[configuration.CONFIG_PARSER_DIR]
                          or [cls._class_file()])
         repository.specialize_props()

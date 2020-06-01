@@ -1,4 +1,3 @@
-
 """
 this is a mock dispatcher, it does nothing, just implements whatever tee needs it to implement
 """
