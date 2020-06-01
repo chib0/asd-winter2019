@@ -8,11 +8,9 @@ The server generally just gets a message, writes it to the disk, and publishes a
 The message then goes into a parser that extrects logic info (like images), and puts it in files, republishes results
 More and more parsers will see more and more messages as parsing takes place.
 """
-import click
-
 import threading
 
-from cortex import utils, configuration
+from cortex import configuration
 from cortex.utils import logging, dispatchers
 from cortex.core import cortex_rest_server
 
@@ -36,29 +34,15 @@ def _run_server(host, port, publish, encoder=None, run_threaded=False):
         module_logger.info(f"starting {server} on {host}:{port} ...")
         server.run(**server_args)
 
-# ----=========== CLI ===========----
-@click.group()
-def cli():
-    pass
-
-@cli.command("run-server")
-@click.option("--host", "-h")
-@click.option("--port", "-p", type=int)
-@click.argument('publish_url')
-def run_server_cli(host, port, publish_url):
+def run_server_with_url(host, port, publish_url, run_threaded=False, encoder=None):
     publisher = None
-    with logging.log_exception(logger=module_logger, to_suppress=(Exception,)):
+    with logging.log_exception(logger=module_logger, format="Could not find publisher"):
         publisher = dispatchers.repository.DispatcherRepository.get_repo().get_dispatcher(publish_url,
-                                                                                          configuration.get_config()[configuration.CONFIG_SERVER_PUBLISH_TOPICS])
-    if not publisher:
-        click.echo("couldn't find publisher for the given URL")
-        exit(-1)
+                                                                                          configuration.get_config()[
+                                                                                              configuration.CONFIG_SERVER_PUBLISH_TOPICS])
+
 
     module_logger.info(f"got publisher {publisher}")
 
-    with utils.logging.log_exception(logger=module_logger, to_suppress=(Exception,)):
+    with logging.log_exception(logger=module_logger, to_suppress=(Exception,)):
         _run_server(host, port, publisher)
-
-
-if __name__ == "__main__":
-    cli()

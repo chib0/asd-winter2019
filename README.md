@@ -10,32 +10,57 @@ I'll try to keep the code documented (as well as self documenting) while doing m
 # Contents
 - cortex - a python package implementing a clinet-server apo that communicates and stores messages(thoughts), a server then aggregates them, as well as implements a web-server that allows access to said messages(thoughts)
 
-	- /utils - a utitlity package that contains all non business logic stuff, or any stuff that could be reused in other systems.
-    - /client - the client implementation.
-    - /core - the server, parsers, db, and more implementations.    
-    - /web - the webserver implementation  
-   
+    #####Runnables:
+    - /client - contains image file reader, arbitrator, and client implementattion
+    - /core - Core objects of the project
+    - /api - Implements the rest api that allows querying information from the server 
+    - /cli - Implements a command line interface that allows basic querying of the api
+    - /server - cli and server choice implementations.
+    - /web - the webserver implementation
+    #####Other
+    - /utils - a utitlity package, mainly filesystems, general parsers/encoders, database implementations, dispatchers, etc.
+
+#Installation
+
+####package installation
+running `/scripts/install.sh` will install the package on the current system, requiring only python and virtualenv to be installed.
+
+####dockerizing
+
+running `scripts/make-dockers` will create dockers for the systems.
+
+#### Running
+`/scripts/run-pipeline.sh` will run the pipeline after the dockers have been created.
+
+
 # Usage
- ' TODO '
+For each runnable, see readme in every cortex/\<Runnable\>
 
 # Design Guidelines
-## The Data Model
-The main issue I had going into this was making the data model as detached as possible from the implementation.
-Let's introduce the "Thought" class a the container that holds everything there is about a users thought.
-This class is what is bounced between the client and the server and is displayed on the web-server.
-It has some identifiers, like the user_id who thought it, the timestamp it was thought at ('metadata') and then it has actual snapshot data.
+The main point for me in this project is Interchangeability and Pipelines.
+Look for readmes in every module or documentation in the files for more information.
 
-On the one hand, I didn't want the Thought class to have to change whenever fields are added to the server.
-This meant I didn't want to expose the snapshot.<field> explicitly (i.e as a property).
-On the other hand, that meant that the snapshot part of the Thought had to be rigid, or older parsers would have to be 
-updated along with the data model, which generally doesn't happen.
+## Interchangeability
+Every python component in the project should be easily interchangeable.
+This is achieved using a Repository/ModuleGatherer object that finds and returns the correct object to handle uri's and data
+There are, of course, constraints on the dispatchers, Database adapters, etc, but they should be well documented.
 
-As I consider the data-model itself rather rigid, having mostly additions and little removals, I believe a Thought
-that is a very loose wrapper that exposes the metadata and snapshot the correct way to go.
+Repositories are automatically constructed using Aspect Oriented programming, allowing thorough configuration for property and module collection.
+Having said that, repositories can also be manually implemented, as in the case of the dispatcher repository.
 
-This in turn means that the data model is defined by the snapshot and the metadata structures, 
-and that the parsers are to expect data to be there. This is fine by me because the parsers are tightly coupled to the 
-data model in terms of what is there.
+## Aspect Oriented Programming
+The repository works a lot as pytest does, collecting functions, inferring their targets, and creating records for them.
+This allows the data pipeline to register these functions easily, with their target as topics, for the message queue.
+
+## Message Queue and Data Pipeline
+While the current project uses RabbitMQ, it is extremely easy to replace that with any other message queue, and all that is 
+required is to implement a run and stop function, as well as handler registration.
+
+The pipeline is implemented using the Tee object, which allows binding a function to consume a topic, then publising its results to another.
+
+Every part of the pipeline accepts a encoders and decoders for the output and input respectively, for easy changing of the transport.
+
+ 
 
 
 

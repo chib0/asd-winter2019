@@ -100,7 +100,7 @@ class MongoDB:
 
     @property
     def db(self):
-        return self.client.tests_cortex if configuration.testing else self.client.cortex
+        return self.client.tests_cortex if configuration.is_testing() else self.client.cortex
 
     @property
     def snapshots(self):

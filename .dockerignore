@@ -1,0 +1,9 @@
+.pytest
+.env
+.pyenv
+.cov
+.cache
+__pycache__
+.git
+sample.mind.gz
+*.log

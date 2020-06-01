@@ -71,7 +71,7 @@ def dispatcher_with_channel(dispatcher):
 def test_dispatch_sends_with_existing_channel(dispatcher_with_channel):
     test_topic, test_data = 'test_topic', 'test_data'
     dispatcher_with_channel.dispatch(test_topic, test_data)
-    dispatcher_with_channel._channel.basic_publish.assert_called_once_with('', test_topic, test_data)
+    dispatcher_with_channel._channel.basic_publish.assert_called_once_with(None, test_topic, test_data)
 
 
 def test_dispatch_creates_new_channel_on_bad_existing_channel(dispatcher_with_channel):
@@ -101,7 +101,7 @@ def test__on_channel_open_flushes_messages(dispatcher_with_channel, monkeypatch)
     _flush_messages_mock.assert_called_once()
 
 def test__flush_messages_publishes_messages_in_queue_on_good_channel(dispatcher_with_channel):
-    test_list = [('','test_topic1', 'test_data1'), ('', 'test_topic2', 'test_topic2')]
+    test_list = [(None,'test_topic1', 'test_data1'), (None, 'test_topic2', 'test_topic2')]
     dispatcher_with_channel._queue = [i[1:] for i in test_list]
     dispatcher_with_channel._flush_messages()
     for called, expected in zip(dispatcher_with_channel._channel.basic_publish.call_args_list, test_list):
@@ -109,7 +109,7 @@ def test__flush_messages_publishes_messages_in_queue_on_good_channel(dispatcher_
 
 def test__flush_messages_re_dispatches_on_exception(dispatcher_with_channel, monkeypatch):
     monkeypatch.setattr(dispatcher_with_channel, 'dispatch', MagicMock())
-    test_list = [('','test_topic1', 'test_data1'), ('', 'test_topic2', 'test_topic2')]
+    test_list = [(None, 'test_topic1', 'test_data1'), (None, 'test_topic2', 'test_topic2')]
     dispatcher_with_channel._queue = [i[1:] for i in test_list]
     dispatcher_with_channel._channel.basic_publish.side_effect = (None, Exception)
     dispatcher_with_channel._flush_messages()

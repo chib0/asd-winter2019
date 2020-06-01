@@ -143,8 +143,11 @@ def test_consumer_on_message_calls_decoder_on_message(consumer_with_mocked_handl
     test_data = 'abcdefghijklmnop'
     # The reason I am passing mock_handler/_decoder here is because it is bound to on_message when we register_handler,
     # and the new bound function is passed to the waiting thread.
-    consumer_with_mocked_handler_decoder.on_message(test_topic, None, None, test_data,
-                                                    message_decoder=mock_decoder, cb=mock_handler)
+    method = MagicMock()
+    method.routing_key = test_topic
+
+    consumer_with_mocked_handler_decoder.on_message(None, method, None, test_data,
+                                                    message_decoder=mock_decoder, cb=mock_handler, topic=test_topic)
     mock_decoder.assert_called_once_with(test_data)
 
 def test_consumer_on_message_calls_handler_with_gets_decoded_message(consumer_with_mocked_handler_decoder,
@@ -152,18 +155,22 @@ def test_consumer_on_message_calls_handler_with_gets_decoded_message(consumer_wi
     test_data = 'abcdefghijklmnop'
     # The reason I am passing mock_handler/_decoder here is because it is bound to on_message when we register_handler,
     # and the new bound function is passed to the waiting thread.
-    consumer_with_mocked_handler_decoder.on_message(test_topic, None, None, test_data,
+    method = MagicMock()
+    method.routing_key = test_topic
+    consumer_with_mocked_handler_decoder.on_message(None, method, None, test_data,
                                                     message_decoder=mock_decoder,
-                                                    cb=mock_handler)
+                                                    cb=mock_handler, topic=test_topic)
     mock_handler.assert_called_once_with(mock_decoder.return_value)
 
 def test_consumer_on_message_raises_runtime_error_on_none_callback(consumer_with_mocked_handler_decoder):
     with pytest.raises((RuntimeError, AttributeError)):
-        consumer_with_mocked_handler_decoder.on_message('test', None, None, 'valid-body', MagicMock())
+        consumer_with_mocked_handler_decoder.on_message(None, None, None, 'valid-body', MagicMock(), topic='test')
 
 def test_consumer_on_message_raises_runtime_error_on_none_decoder(consumer_with_mocked_handler_decoder, mock_handler):
     with pytest.raises(RuntimeError):
-        consumer_with_mocked_handler_decoder.on_message('test', None, None, 'valid-body', cb=mock_handler)
+        method = MagicMock()
+        method.routing_key = 'test'
+        consumer_with_mocked_handler_decoder.on_message(None, method, None, 'valid-body', cb=mock_handler, topic='test')
 
 
 #TODO: test start, stop, _run_consumer

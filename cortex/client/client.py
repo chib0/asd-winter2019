@@ -10,6 +10,10 @@ from cortex import configuration
 from cortex.utils import filesystem
 
 class ClientHTTPSession:
+    """
+    Implements an HTTPSession with a Cortex host.
+    The session is meant to work with a snapshots from a single user.
+    """
     SCHEME = 'http'
     @classmethod
     def start(cls, host, port):
@@ -29,6 +33,7 @@ class ClientHTTPSession:
         pass
 
     def get_config(self):
+        """ retrieves configuration from the server, if necessary"""
         config_url = self.url / configuration.get_config()[configuration.CONFIG_SERVER_CONFIG_ENDPOINT]
         resp = config_url.get()
         if not resp.ok or resp.status_code != 200:
@@ -46,6 +51,13 @@ class ClientHTTPSession:
         return thought.serialize(serializer)
 
     def send_thought(self, thought, serializer, metadata_serializer):
+        """
+        sends the thoughts as the current user
+        :param thought: the thought to send
+        :param serializer: the thought serializer
+        :param metadata_serializer: the user metadata serializer
+        :return:
+        """
         self.ensure_user(thought,  metadata_serializer)
         data = self.serialize_thought(thought, serializer)
         content_type =  'application/octet-stream' if isinstance(data, bytes) else ''
@@ -53,6 +65,7 @@ class ClientHTTPSession:
 
     @once_per('self')
     def ensure_user(self, thought, serializer):
+        """ensures that the user is indeed registered on the server"""
         data = thought.serialize_user(serializer)
         return self.post_with_content_type('users', data, 'application/json')
 
@@ -70,6 +83,13 @@ def _upload_sample(thought_collection, session):
             session.send_thought(thought, cortex_pb2.Snapshot.SerializeToString, lambda x: json.dumps(MessageToDict(x)))
 
 def upload_sample(host, port, sample_path):
+    """
+    uploads the sample at the given path to a cortex host at the given host/port.
+    :param host: hostname
+    :param port: port
+    :param sample_path: path the the samplefile
+    :return:
+    """
     with filesystem.open_file(sample_path) as sample, ClientSession.start(host, port) as session:
         reader = sample_reader.SampleReader(sample, protobuf_parser.ProtobufSampleParser())
         _upload_sample(reader, session)

@@ -5,6 +5,9 @@ from . import cortex_pb2
 class ProtobufParseError(Exception): pass
 
 class ProtobufSampleParser:
+    """
+    a class for parsing a protobufed cortex sample data, which is generally (<message_size> <USER> [<message size> <Snapshot]*)
+    """
     MESSAGE_SIZE_PARSER = Struct("I")
 
     def __init__(self):
@@ -43,6 +46,7 @@ class ProtobufSampleParser:
 
     @utils.decorators.once_per_args
     def parse_user(self, stream):
+        """ this is called the first time a though is sent, to read the user message """
         self._user = cortex_pb2.User()
         ok = self.read_message(stream, self._user)
         return self._user if ok else None
@@ -58,6 +62,11 @@ class ProtobufSampleParser:
         return Thought.from_snapshot(self._user, thought_data) if ok else None
 
     def next(self, stream):
+        """
+        returns the next thought in the stream
+        :param stream:
+        :return:
+        """
         self.parse_user(stream)
         return self.parse_thought(stream)
 

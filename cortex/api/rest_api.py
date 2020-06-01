@@ -16,6 +16,14 @@ def _default_adapters():
     return {lambda uri: uri.path.endswith('depth'): lambda data: DepthImage.from_bson_data(data).bson()}
 
 def get_api(app_name, database, db_res_encoder=json.dumps, data_adapters=None):
+    """
+    returns an API implementation that can be `run(host, port`).
+    :param app_name: name the app will receive
+    :param database: the database implementation to use
+    :param db_res_encoder: the encoder for database return values
+    :param data_adapters: a (lambda uri: Bool => adapter) map, that will handle specific backend file uris differently
+    :return:
+    """
     app = Flask(app_name)
     CORS(app)
     data_adapters = data_adapters or _default_adapters()

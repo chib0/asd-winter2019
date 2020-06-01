@@ -29,7 +29,7 @@ def _run_image(to_run, dock=None, detach=False, re_run=False):
     click.echo(f"starting {to_run['image']}...")
     #TODO: consider changing to **to_run
     container = dock.containers.run(to_run['image'], detach=detach, ports=to_run['ports'], hostname=to_run['hostname'],
-                                    volumes=to_run.get('volumes', None) )
+                                    volumes=to_run.get('volumes', None))
     click.echo(f"started: {container.name}")
 
 
