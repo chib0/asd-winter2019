@@ -19,9 +19,8 @@ def get_logger(name, custom_handlers=()):
     """
     logger = logging.getLogger(name)
 
-    if logger.hasHandlers():
+    if logger.hasHandlers() and not configuration.is_testing(): # when testing, hasHandlers is somewhy set but we don't get output
         return logger
-
     config = configuration.get_config()
     logger.setLevel(config[configuration.CONFIG_DEBUG_LEVEL])
     # create file handler which logs even debug messages

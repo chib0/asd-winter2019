@@ -26,23 +26,24 @@ def test_with_user_calls_decoree_with_correct_type():
 def test_with_protobuf_snapshot_unpacks_message():
     f = MagicMock()
     mock_protobuf = MagicMock()
-    callee = parser_decorators.with_protobuf_snapshot(mock_protobuf)(f)
-    passed_message = {'snapshot': 'some_string'}
+    user_type_mock = MagicMock()
+    callee = parser_decorators.with_protobuf_snapshot(mock_protobuf, user_type=user_type_mock)(f)
+    passed_message = {'snapshot': 'some_string', 'user': MagicMock()}
     callee(passed_message)
-
     mock_protobuf.ParseFromString.assert_called_once_with(mock_protobuf.return_value, 'some_string')
-    f.assert_called_once_with(mock_protobuf.return_value, passed_message)
+    f.assert_called_once_with(user_type_mock.return_value, mock_protobuf.return_value, passed_message)
 
 
 def test_with_protobuf_snapshot_unpacks_message_according_to_key():
     f = MagicMock()
     mock_protobuf = MagicMock()
-    callee = parser_decorators.with_protobuf_snapshot(mock_protobuf, 'key')(f)
-    passed_message = {'key': 'some_string'}
+    user_type_mock = MagicMock()
+    callee = parser_decorators.with_protobuf_snapshot(mock_protobuf, 'key', user_key='key2', user_type=user_type_mock)(f)
+    passed_message = {'key': 'some_string', 'key2': 'user'}
     callee(passed_message)
 
     mock_protobuf.ParseFromString.assert_called_once_with(mock_protobuf.return_value, 'some_string')
-    f.assert_called_once_with(mock_protobuf.return_value, passed_message)
+    f.assert_called_once_with( user_type_mock.return_value, mock_protobuf.return_value, passed_message)
 
 
 # @pytest.fixture()
@@ -82,7 +83,3 @@ def test_with_protobuf_snapshot_unpacks_message_according_to_key():
 #     assert res['timestamp'] == mock_snapshot.timestamp
 #
 
-
-
-def test_feelings_parser():
-    pass
