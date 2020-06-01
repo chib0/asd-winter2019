@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Snapshot</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="/static/bootstrap-4.5.0-dist/css/bootstrap.css" rel="stylesheet" type="text/css">
+    <script src="https://bundle.run/buffer@5.6.0"></script>
+    <script src="/static/bootstrap-4.5.0-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/bson.bundle.js"></script>
+    <script src="/static/cortex/card.js"></script>
+    <script src="/static/js/heatmap.min.js"></script>
+    <script src="/static/js/heatmap_array_adaptor.js"></script>
+    <script src="/js/cortex.js"></script>
+    <script src="/static/cortex/index.js"></script>
+
+    <script src="/static/js/snapshot_compiled.js"></script>
+</head>
+<body onload="startPopulateSnapshot()">
+
+
+
+
+<div class="user-card-div"></div>
+<div class="pose-container"></div>
+<div class="snapshot-image-container">
+    <h5>Color Image</h5>
+</div>
+<div class="snapshot-heatmap-container" style="text-align: center; background:rgba(0,0,0,.03); border:3px solid black;">
+    <h5>Depth Perception Heatmap</h5>
+      <div class="heatmap" style="text-align: center; position: fixed;">
+        <canvas class="heatmap-canvas" style="position: relative; display:block; top:50%; left:50% ">
+        </canvas>
+      </div>
+</div>
+
+
+
+
+</body>
+</html>

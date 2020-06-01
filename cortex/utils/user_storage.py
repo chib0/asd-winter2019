@@ -4,6 +4,7 @@ import datetime
 from urlpath import URL
 
 from cortex import configuration
+from cortex.utils.filesystem import open_file
 from cortex.utils.decorators import cache_res
 
 
@@ -31,11 +32,12 @@ class UserStorage:
     def get_base_uri(self):
         return URL(str(self.base / str(self.user))).with_scheme('file')
 
-    def open(self, uri, mode='r'):
+    @classmethod
+    def open(cls, uri, mode='r'):
+        uri = URL(uri)
         if not uri.scheme == 'file':
-            raise ValueError(f"uri type {uri.scheme} not supported")
-        print(uri.path)
-        return open(uri.path, mode)
+            raise ValueError(f"uri type {uri} not supported")
+        return open_file(uri.path, mode)
 
     def create(self, uri, mode):
         if not uri.scheme == 'file':

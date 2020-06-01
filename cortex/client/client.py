@@ -7,7 +7,7 @@ from google.protobuf.json_format import MessageToDict
 from . import sample_reader, protobuf_parser
 from cortex.core import cortex_pb2
 from cortex import configuration
-from cortex.utils import open_file
+from cortex.utils import filesystem
 
 class ClientHTTPSession:
     SCHEME = 'http'
@@ -70,6 +70,6 @@ def _upload_sample(thought_collection, session):
             session.send_thought(thought, cortex_pb2.Snapshot.SerializeToString, lambda x: json.dumps(MessageToDict(x)))
 
 def upload_sample(host, port, sample_path):
-    with open_file(sample_path) as sample, ClientSession.start(host, port) as session:
+    with filesystem.open_file(sample_path) as sample, ClientSession.start(host, port) as session:
         reader = sample_reader.SampleReader(sample, protobuf_parser.ProtobufSampleParser())
         _upload_sample(reader, session)

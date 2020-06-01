@@ -16,8 +16,8 @@ def snapshot_encoder(snapshot, **kwargs):
 
 def snapshot_decoder(message_string):
     d = loads(message_string)
-    with log_exception(logger, to_suppress=(FileNotFoundError,),
-                       format=lambda x: f"Could not read MessageRecord: {x}"):
+    with log_exception(logger, to_suppress=(FileNotFoundError, KeyError, ),
+                       format=lambda x: f"Could not read MessageRecord: {repr(x)}, parsed_message: {d}"):
         with MessageRecord.open(d['snapshot']) as mr:
             d['snapshot'] = mr.read()
             return d

@@ -32,13 +32,16 @@ def get_dispatcher(url, topics, auto_start=True, **kwargs):
 
 
 class RabbitQueueDispatcher:
-    def __init__(self, endpoints, topics):
+    Exchange = 'cortex'
+    def __init__(self, endpoints, topics, reconnecting=True):
         self._logger = utils.logging.get_instance_logger(self)
         self._connection = None
+        self._exchange = None
         self._channel = None
         self._endpoints = endpoints
         self._topics = topics
         self._ioloop = None
+        self._reconnect = reconnecting
         self._queue = []
 
     def dispatch(self, topic, data, again=False):
@@ -63,8 +66,8 @@ class RabbitQueueDispatcher:
             return False
 
         with utils.logging.log_exception(self._logger, to_suppress=Exception, format=lambda e: f"had error sending {e}"):
-            self._logger.info(f"sending {topic}: {data}")
-            self._channel.basic_publish('', topic, data)
+            self._logger.debug(f"sending {topic}: {data}")
+            self._channel.basic_publish(self._exchange, topic, data)
             return True
 
         return False
@@ -81,7 +84,7 @@ class RabbitQueueDispatcher:
         while self._queue:
             topic, data = self._queue.pop(0)
             try:
-                self._channel.basic_publish('', topic, data)
+                self._channel.basic_publish(self._exchange, topic, data)
             except Exception:
                 # there is an issue with this channel, we're trying to reconnect.
                 self.dispatch(topic, data, again=True)
@@ -95,11 +98,15 @@ class RabbitQueueDispatcher:
         :return:
         """
         self._logger.info("opening channel...")
+
         def has_channel(channel):
-            self._logger.info("declaring topics...")
+            self._logger.info("declaring topics & exchange...")
+            channel.exchange_declare(exchange=self.Exchange, exchange_type='fanout')
+
             for i in self._topics:
                 channel.queue_declare(i)
 
+            self._exchange = self.Exchange
             self._channel = channel
 
         ch = connection.channel(on_open_callback=has_channel)
@@ -113,6 +120,8 @@ class RabbitQueueDispatcher:
         """
         self._logger.info(f"connection closed: {reason}")
         self._connection.ioloop.stop()
+        if self._reconnect:
+            self.start()
 
     def _create_and_start_conn(self):
         """

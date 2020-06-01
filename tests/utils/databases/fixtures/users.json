@@ -1,0 +1,16 @@
+[
+    {
+    "id" : 1,
+    "info": {
+      "birthday": 12345,
+      "gender": "male",
+      "username": "Test User"
+    }},
+    {
+    "id" : 2,
+    "info": {
+      "birthday": 55555,
+      "gender": "male",
+      "username": "Test User"
+    }}
+]

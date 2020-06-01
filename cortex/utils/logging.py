@@ -5,8 +5,10 @@ import sys
 from pathlib import Path
 
 from cortex import configuration
+from cortex.utils.decorators import cache_res
 
 
+@cache_res(maxsize=None)
 def get_logger(name, custom_handlers=()):
     """
     gets a uniformally configured logger for the project.
@@ -16,6 +18,10 @@ def get_logger(name, custom_handlers=()):
     :param custom_handlers: an iterable of handlers to add to the logger. all handlers are normat python logging ones.
     """
     logger = logging.getLogger(name)
+
+    if logger.hasHandlers():
+        return logger
+
     config = configuration.get_config()
     logger.setLevel(config[configuration.CONFIG_DEBUG_LEVEL])
     # create file handler which logs even debug messages

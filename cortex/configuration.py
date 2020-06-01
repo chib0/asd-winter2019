@@ -25,6 +25,11 @@ CONFIG_SERVICE_DOCKER_IMAGES = 'server-docker-image-data'
 
 CONFIG_USER_STORAGE_BASE = 'server-user-shared-storage'
 
+def testing():
+    import sys
+    return 'test' in sys.argv[0]
+
+
 
 def _shard_storage_base():
     return pathlib.Path(tempfile.mkdtemp(prefix='cortex_tests') if testing() else '~/cortex_store').expanduser()
@@ -35,11 +40,15 @@ def shared_storage_path():
     out.mkdir(parents=True, exist_ok=True)
     return out
 
+def shared_mongo_dir():
+    out = _shard_storage_base() / 'mongo'
+    out.mkdir(parents=True, exist_ok=True)
+    return out
 
 @cache_res
 def get_config():
     return {
-        CONFIG_DEBUG_LEVEL: logging.DEBUG,
+        CONFIG_DEBUG_LEVEL: logging.INFO,
         CONFIG_CLIENT_CONFIG: {},
         CONFIG_SERVER_THREAD_NAME: "cortex_backend_server",
         CONFIG_SERVER_CONFIG_ENDPOINT: '/configuration',
@@ -58,7 +67,9 @@ def _make_docker_port_list(tcp_ports, udp_ports=()):
     ports.update({f"{port}/upd": port for port in udp_ports})
     return ports
 
-MONGO_DB_DOCKER_INFO = dict(image='mongo:4', ports=_make_docker_port_list([27017]), hostname='some-mongo')
+MONGO_DB_DOCKER_INFO = dict(image='mongo:4', ports=_make_docker_port_list([27017]), hostname='some-mongo',
+                            volumes={'/opt/mongo': {'bind': str(shared_mongo_dir()/ 'opt'), 'mode': 'rw'},
+                                     '/home/mongo/data': {'bind': str(shared_mongo_dir() / 'data'), 'mode': 'rw'}})
 RABBIT_MQ_DOCKER_INFO = dict(image='rabbitmq:3', ports=_make_docker_port_list([5672, 5671, 15672]),
                              hostname='some-rabbit')
 
@@ -67,10 +78,6 @@ class topics:
     snapshot = 'snapshot'
     user_info = 'user_info'
 
-
-def testing():
-    import sys
-    return 'test' in sys.argv[0]
 
 def get_raw_data_topic_name():
     return topics.snapshot

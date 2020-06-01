@@ -10,6 +10,6 @@ from . import  parser_decorators as decos
                               user_type=int)
 def parse_pose(user,
                snapshot, rest):
-    out = {'user': user, 'timestamp': snapshot.datetime, 'result': {'pose:': MessageToDict(snapshot.pose)}}
+    out = {'user': user, 'timestamp': snapshot.datetime, 'result': {'pose': MessageToDict(snapshot.pose)}}
     return out
 

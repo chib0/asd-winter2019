@@ -37,7 +37,7 @@ class PluginRunner:
         self._run_with_tee(handler.handler, tee, blocking)
 
     def _run_with_uri(self, handler, uri, blocking, publisher_uri=None):
-        tee = dispatchers.tee.get_topic_tee(in_topic=configuration.get_raw_data_topic_name(),
+        tee = dispatchers.tee.get_topic_tee(in_topic=configuration.get_raw_data_topic_name() + str(handler.target),
                                             out_topic=configuration.get_parsed_data_topic_name(handler.target),
                                             consumer_uri=uri,
                                             publisher_uri=publisher_uri or uri)

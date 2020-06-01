@@ -1,7 +1,7 @@
 import json
 import threading
 
-from utils import databases
+from cortex.utils import databases
 from . import rest_api
 
 def run_server(host, port, cortex_database):

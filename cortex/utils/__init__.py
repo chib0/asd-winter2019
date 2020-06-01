@@ -8,7 +8,6 @@ import sys
 # from . import configuration
 from . import decorators
 import urlpath
-
 from . import logging
 
 
@@ -63,15 +62,4 @@ def base_64_url_for(data):
         base64.encodebytes(data).encode('utf-8')
     )
 
-def open_mind_gz(path, mode='rb'):
-    return gzip.open(path, mode)
 
-file_ext_handlers = {'.gz': open_mind_gz}
-
-def open_file(path):
-    uri = urlpath.URL(path)
-    if not uri.scheme or uri.scheme == 'file://':
-        path = pathlib.Path(uri.name or uri.netloc or uri.hostname)
-    else:
-        raise NotImplementedError("Cannot open non-local file")
-    return file_ext_handlers[path.suffix](str(path))

@@ -9,6 +9,7 @@ import threading
 from dataclasses import make_dataclass
 
 import pika
+import pika.exceptions
 import urlpath
 
 from cortex.utils.logging import get_logger, get_module_logger, log_exception
@@ -30,9 +31,9 @@ def get_consumer(url, handlers=None, auto_start=False ):
 
 
 class RabbitQueueConsumer:
-    HandlerRecord = make_dataclass ("HandlerRecord", ['callback', ('thread', 'str'), 'channel'])
-
-    def __init__(self, params, handlers=None):
+    HandlerRecord = make_dataclass ("HandlerRecord", ['callback', ('thread', 'str'), 'channel', 'message_decoder'])
+    Exchange='cortex'
+    def __init__(self, params, handlers=None, exchange=None):
         """
         creates a new consumer. a consumer is a threaded entity that can handle many channels at once.
         :param params: the pika connection params to the server
@@ -40,11 +41,14 @@ class RabbitQueueConsumer:
         """
         self._logger = get_logger(self.__class__.__name__)
         self._connection_params = params
-        self._connection = pika.BlockingConnection(self._connection_params)
+        self._connection_lock = threading.Lock()
+        self._io_list_lock = threading.Lock()
+        self._connection = None
         self.handlers = handlers or {}
         self.thread_prefix = f"rabbitmq-consumer-{''.join(random.sample(string.ascii_lowercase, 5))}"
         self._running = False
-        self._io_list_lock = threading.Lock()
+        self._exchange = exchange or self.Exchange
+        self._ensure_connection()
 
     def start(self):
         self.assert_all_handlers_registered()
@@ -60,6 +64,18 @@ class RabbitQueueConsumer:
             for i in filter(lambda x: not x.thread.is_alive(), self.handlers.values()):
                 i.channel.close()
 
+    def _consume_indefinitely(self, topic, record):
+        # assumes that the channel is connected and ready at this point
+        while True:
+            with log_exception(self._logger, to_suppress=(pika.exceptions.StreamLostError,),
+                               format=lambda
+                                       e: f"thread {threading.current_thread()} lost stream, reconnecting"):
+                self._logger.info(f"start consuming {topic}")
+                record.channel.start_consuming()
+
+            record.channel = self._make_channel(topic,
+                                            handler=record.callback,
+                                            message_decoder=record.message_decoder)
 
     def _run_consumer(self, topic):
         with self._io_list_lock:
@@ -68,9 +84,10 @@ class RabbitQueueConsumer:
             self._logger.error(f"handler for {topic} is none")
 
         else:
+
             with log_exception(self._logger, to_suppress=(Exception, RuntimeError),
                            format=lambda e: f"thread {threading.current_thread()} exception while consuming: {e}"):
-                record.channel.start_consuming()
+                self._consume_indefinitely(topic, record)
         with self._io_list_lock:
             self.handlers.pop(topic)
             if not len(self.handlers):
@@ -94,12 +111,27 @@ class RabbitQueueConsumer:
             t.start()
         return t
 
-    def on_message(self, topic, b, c, body, message_decoder=None, cb=None):
-        self._logger.debug(f"{threading.current_thread().name} receiving: {body} with {topic}, passing to {cb.__name__}")
+    def on_message(self, channel, method, c, body, message_decoder=None, cb=None, topic=None):
+        if not topic.startswith(method.routing_key):
+            return
+        self._logger.info(f"{threading.current_thread().name} receiving: {body} with {method.routing_key}")
         if cb and message_decoder:
             cb(message_decoder(body))
         else:
             raise RuntimeError(f"could not parse because bad 'decoder :' {message_decoder!r} or callback: {cb!r}")
+
+    def _make_channel(self, topic, handler, message_decoder):
+        self._ensure_connection()
+        channel = self._connection.channel()
+        channel.exchange_declare(self._exchange, exchange_type='fanout')
+        channel.queue_declare(topic)
+        channel.queue_bind(queue=topic, exchange=self._exchange)
+        channel.basic_consume(queue=topic,
+                              on_message_callback=functools.partial(self.on_message,
+                              cb=handler,
+                              message_decoder=message_decoder, topic=topic),
+                              auto_ack=True)
+        return channel
 
     def register_handler(self, topic, handler, auto_start=False, message_decoder=json.loads):
         """
@@ -111,15 +143,10 @@ class RabbitQueueConsumer:
         :param message_decoder: decoder for messages coming over the handler
         :return: the handler argument
         """
-        channel = self._connection.channel()
-        channel.queue_declare(topic)
-        channel.basic_consume(queue=topic,
-                              on_message_callback=functools.partial(self.on_message,
-                                                                    cb=handler,
-                                                                    message_decoder=message_decoder),
-                              auto_ack=True)
+        channel = self._make_channel(topic, handler, message_decoder)
         with self._io_list_lock:
-            self.handlers[topic] = record = self.HandlerRecord(callback=handler, thread=None, channel=channel)
+            self.handlers[topic] = record = self.HandlerRecord(callback=handler, thread=None, channel=channel,
+                                                               message_decoder=message_decoder)
         t = self._make_consumer(topic, auto_start)
         record.thread = t
         return handler
@@ -172,3 +199,10 @@ class RabbitQueueConsumer:
     @property
     def running(self):
         return self._running
+
+    def _ensure_connection(self):
+        with self._connection_lock:
+            if not self._connection or self._connection.is_closed:
+                self._logger.info("creating new connection...")
+                self._connection = pika.BlockingConnection(self._connection_params)
+                self._logger.info("created!")

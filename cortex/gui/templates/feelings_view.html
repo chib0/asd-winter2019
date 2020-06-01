@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Locations</title>
+    <link href="/static/bootstrap-4.5.0-dist/css/bootstrap.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/static/bootstrap-4.5.0-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/cortex/card.js"></script>
+    <script src="/js/cortex.js"></script>
+    <script src="/static/cortex/index.js"></script>
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/data.js"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <!-- Additional files for the Highslide popup effect -->
+    <script src="https://www.highcharts.com/media/com_demo/js/highslide-full.min.js"></script>
+    <script src="https://www.highcharts.com/media/com_demo/js/highslide.config.js" charset="utf-8"></script>
+
+    <script src="/static/js/{{CHART_NAME}}.js"></script>
+    <link href="/static/css/{{CHART_NAME}}.css" rel="stylesheet" type="text/css">
+</head>
+<body onload="getFeelingsData()">
+
+<script>
+    function gatherCSVKeys(data) {
+        let set = new Set();
+
+        for (entry of data) {
+            Object.keys(entry['feelings']).forEach((feels) => set.add(feels))
+        }
+        return set
+    }
+    function feelingsJSONToCSV(data) {
+        let feelings = gatherCSVKeys(data);
+        let keys = ['timestamp',...feelings];
+        let out = keys.join(", ")  + '\n';
+        for (let entry of data) {
+            let row = keys.map((key)=>entry['feelings'][key] || entry[key] || 0);
+            out+= row.join(", ") + '\n'
+        }
+        return out;
+    }
+    function getFeelingsData(){
+         let user_id = hashArgs().id;
+         let data = cortex.getUserFeelings(user_id, (data) => {
+             data = feelingsJSONToCSV(data);
+             console.log(data);
+             getChartForData(data);
+         });
+     }
+</script>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <div class="navbar-collapse collapse justify-content-between align-items-left ">
+    <ul  class="navbar-brand  navbar-nav mr-auto" >
+        <li class="nav-item active">
+            <a class="nav-link btn-link " href="/">
+                <i class="{{BRAND_LOGO_CLASS}}"> Cortex</i>
+            </a>
+        </li>
+
+      </ul>
+    </div>
+</nav>
+
+<figure class="highcharts-figure">
+  <div id="container"></div>
+  <p class="highcharts-description">
+  </p>
+</figure>
+</body>
+</html>

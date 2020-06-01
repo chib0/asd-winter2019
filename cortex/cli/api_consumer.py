@@ -1,8 +1,7 @@
-from contextlib import suppress
+import base64
+import json
 
-import requests
 import urlpath
-
 
 class Consumer:
     def __init__(self, host, port):
@@ -11,7 +10,13 @@ class Consumer:
     def _request(self, *path_parts):
         url =  self.url.joinpath(*map(str, path_parts))
         resp = url.get()
-        return resp.json() if resp.ok else None
+        if not resp.ok:
+            return None
+        try:
+            return resp.json()
+        except json.decoder.JSONDecodeError:
+            return base64.encodebytes(resp.content)
+
 
     def get_users(self):
         return self._request('users')

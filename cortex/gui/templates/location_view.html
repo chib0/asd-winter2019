@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Locations</title>
+    <link href="/static/bootstrap-4.5.0-dist/css/bootstrap.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/static/bootstrap-4.5.0-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/cortex/card.js"></script>
+    <script src="/js/cortex.js"></script>
+    <script src="/static/cortex/index.js"></script>
+
+    <!--    3d grah requirements -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <script src="/static/js/{{CHART_NAME}}.js"></script>
+    <link href="/static/css/{{CHART_NAME}}.css" rel="stylesheet" type="text/css">
+</head>
+<body onload="getLocationData()">
+
+<script>
+     function getLocationData(){
+         let user_id = hashArgs().id;
+         let data = cortex.getUserLocations(user_id, (data) => {
+             getChartForData(data);
+         });
+     }
+</script>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <div class="navbar-collapse collapse justify-content-between align-items-left ">
+    <ul  class="navbar-brand  navbar-nav mr-auto" >
+        <li class="nav-item active">
+            <a class="nav-link btn-link " href="/">
+                <i class="{{BRAND_LOGO_CLASS}}"> Cortex</i>
+            </a>
+        </li>
+
+      </ul>
+    </div>
+</nav>
+
+<figure class="highcharts-figure">
+  <div id="container"></div>
+  <p class="highcharts-description">
+      This chart shows the path a user has taken through his timeline.
+  </p>
+</figure>
+</body>
+</html>

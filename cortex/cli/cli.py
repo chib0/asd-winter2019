@@ -39,7 +39,7 @@ def get_snapshot(ctx, user_id, snapshot_id_or_timestamp):
     click.echo(ctx.obj['consumer'].get_snapshot(user_id, snapshot_id_or_timestamp))
 
 
-@click.command
+@cli.command()
 @click.argument('user_id')
 @click.argument('snapshot_id_or_timestamp')
 @click.argument('result')
@@ -48,7 +48,7 @@ def get_result(ctx, user_id, snapshot_id_or_timestamp, result):
     click.echo(ctx.obj['consumer'].get_result( user_id, snapshot_id_or_timestamp, result))
 
 
-@click.command
+@cli.command()
 @click.argument('user_id')
 @click.argument('snapshot_id_or_timestamp')
 @click.argument('result')

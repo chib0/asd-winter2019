@@ -22,9 +22,9 @@ def parse_color_image(user, snapshot, rest):
                               user_type=int)
 def parse_depth_image(user, snapshot, rest):
     di = snapshot.depth_image
-    im = images.DepthImage.from_bytes(di.width, di.height, di.data)
+    im = images.DepthImage.from_bytes(di.width, di.height, list(di.data))
     store = user_storage.UserStorage.get_for(user)
-    uri = store.generate_file_uri_with_suffix('depth_image', 'depth')
+    uri = store.generate_file_uri_with_suffix('depth_image', '.depth')
     im.save(store.create(uri, 'wb'))
     return {'user': user, 'timestamp': snapshot.datetime, 'result': {'depth_image' : str(uri)}}
 
