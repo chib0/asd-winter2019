@@ -7,7 +7,6 @@ services:
         command: ['scripts/wait_for_it.sh', '-h', 'mq', '-p', '5672', '--', 'python', '-m', 'cortex.server', 'run-server', 'rabbitmq://mq:5672', '--host=0.0.0.0', '--port=8080']
         ports:
             - "8080:8080"
-            - "8000:8000"
         depends_on:
             - parser
             - saver
@@ -47,6 +46,19 @@ services:
             - "5000:5000"
         volumes:
             - ./cortex_storage:/cortex_storage
+    gui:
+        environment:
+            - SHARED_STORAGE=/cortex_storage
+        image: doccortex:0.1.29
+        command:  ['python', '-m', 'cortex.gui', 'run-server', '-h','0.0.0.0', '-p', '8000', '-H', 'localhost', '-P', '5000']
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./cortex_storage:/cortex_storage
+        depends_on:
+            - api
+        links:
+            - "api:api"
     mq:
         image: rabbitmq:3
         ports:
