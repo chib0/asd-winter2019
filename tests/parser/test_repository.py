@@ -3,7 +3,6 @@ import sys
 import pytest
 
 from cortex.parser import repository
-from utils.repository_base import RepositoryBase, HandlerRecord
 
 def test_parser_record_parse_target_name():
     def parse_something():

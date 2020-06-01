@@ -3,7 +3,6 @@ import sys
 import pytest
 
 from cortex.saver import repository
-from utils.repository_base import RepositoryBase, HandlerRecord
 
 def test_saver_record_parse_target_name():
     def save_something():

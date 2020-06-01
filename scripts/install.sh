@@ -5,6 +5,18 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 SCRIPT_PATH=$(dirname $(realpath -s $0))
 
+
+usage()
+{
+    cat << USAGE >&2
+Usage:
+    $SCRIPT_PATH/insatll.sh [for-docker|with-docker|--help]
+      --help : display this
+      with-docker: will build a docker and tag it as doccortex as well as installing this package
+      for-docker: internal. used when installing the package in a docker
+USAGE
+    exit 1
+}
 function get-bootstrap {
     BSTRP_TMP=/tmp/getting_bootstrap
     mkdir $BSTRP_TMP
@@ -18,6 +30,10 @@ function get-bootstrap {
 
 
 function main {
+    if ["$1" == "--help"] ; then
+        usage
+        exit
+    fi
     if [ "$1" != "for-docker" ] ; then
 	    python -m virtualenv .env --prompt "asd-thoughts"
 	    find .env -name site-packages -exec bash -c 'echo "../../../../" > {}/self.pth' \;
@@ -25,7 +41,9 @@ function main {
     pip install -U pip
     pip install -r requirements.txt
     get-bootstrap
-    docker build . -t doccortex:0.2
+    if ["$1 == with-docker"] ; then
+      docker build . -t doccortex:0.2
+    fi
 }
 
 
