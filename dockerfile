@@ -2,7 +2,7 @@ FROM python:3.8
 
 COPY . /cortex
 
-RUN /cortex/scripts/install.sh docker
+RUN /cortex/scripts/install.sh for-docker
 
 EXPOSE 8080
 EXPOSE 8000

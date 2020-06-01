@@ -18,13 +18,14 @@ function get-bootstrap {
 
 
 function main {
-    if [ "$1" != "docker" ] ; then
+    if [ "$1" != "for-docker" ] ; then
 	    python -m virtualenv .env --prompt "asd-thoughts"
 	    find .env -name site-packages -exec bash -c 'echo "../../../../" > {}/self.pth' \;
     fi
     pip install -U pip
     pip install -r requirements.txt
     get-bootstrap
+    docker build . -t doccortex:0.2
 }
 
 
