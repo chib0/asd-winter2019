@@ -34,7 +34,7 @@ port-for==0.4
 protobuf==3.11.2
 protobuf-compiler==1.0.20
 psutil==5.7.0
-py==1.8.0
+py==1.10.0
 pymongo==3.10.1
 pyparsing==2.4.5
 pytest==5.3.1
