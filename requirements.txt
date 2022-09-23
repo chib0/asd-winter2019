@@ -31,7 +31,7 @@ pika==1.1.0
 Pillow==6.2.1
 pluggy==0.13.1
 port-for==0.4
-protobuf==3.11.2
+protobuf==3.18.3
 protobuf-compiler==1.0.20
 psutil==5.7.0
 py==1.8.0
